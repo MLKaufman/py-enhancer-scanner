@@ -27,7 +27,8 @@ python implementation of an API to facilitate the scanning, integrating, and vis
 ---
 
 ## Usage
-The prefered method to interact with pyEnhancerScanner is through a Jupyter notebook interface. Functionality of pyEnhancerScanner is through the creation of a scanobject from the EnhancerScanner class and choosing a data track and genome to analyze:  
+The prefered method to interact with pyEnhancerScanner is through a Jupyter notebook interface. Functionality of pyEnhancerScanner is through the creation of a scanobject from the EnhancerScanner class and choosing a data track and genome to analyze: 
+&nbsp
 `from pyEnhancerScanner import EnhancerScanner`
 
 `scanobject = EnhancerScanner('mm10.60way.phastCons60wayPlacental.bw', 'mm10')`  
