@@ -12,7 +12,8 @@ from Bio.Seq import Seq
 
 from primer3plus import Design
 
-VERSION = 0.1
+VERSION = 0.2
+#testing this update
 
 class EnhancerScan:
     """ Class to handle scanning of bigwig files. """
