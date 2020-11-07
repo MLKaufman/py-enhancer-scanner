@@ -1,6 +1,9 @@
 # py-enhancer-scanner
 python implementation of an API to facilitate the scanning, integrating, and visualizing genomic track data for regions of interest in gene regulation
 ---
+![Demo Peaks](/images/demopeaks.png)
+
+---
 
 ## Requirements
 - python >= 3.5
@@ -27,9 +30,9 @@ python implementation of an API to facilitate the scanning, integrating, and vis
 - Auto creates primers for amplification of identified region products with optional Gibson Assembly overhangs
 - Generates plots describing the identified sequences
 - Output of bed file for anotations
-- Output all results to CSV file
+- Output all results to CSV file  
 - TODO: Output of sequences and annotations to genbank file for import into sequence analysis tools
-- TODO: Remove access of bigwig files
+- TODO: Remote access of bigwig files
 ---
 ## Installation
 
