@@ -16,7 +16,7 @@ python implementation of an API to facilitate the scanning, integrating, and vis
 - scipy==1.5.3
 - numpy==1.19.2
 - primer3plus==1.0.8
-- jupyter (optional)
+- jupyterlab (optional)
 
 ---
 
@@ -29,7 +29,7 @@ python implementation of an API to facilitate the scanning, integrating, and vis
 - Generates plots describing the identified sequences
 - Output of bed file for anotations
 - Output all results to CSV file  
-- TODO: Output of sequences and annotations to genbank file for import into sequence analysis tools
+- Output of sequences and annotations to genbank file for import into sequence analysis tools
 - TODO: Remote access of bigwig files
 ---
 ## Installation
