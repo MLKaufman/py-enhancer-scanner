@@ -28,8 +28,8 @@ class EnhancerScan:
 
         print("pyEnhancerScanner version " + str(VERSION) + " beta")
         print("The following tracks are available:\n")
-        print(self.list_tracks())
-        #raise RuntimeError("You need to specify a bigwig file; either local path or remote path!")
+        print(self.list_tracks(), "\n")
+        print("Ability to load remote files: ", pyBigWig.remote)
 
     def load_track(self, track, genome):
         if track is not None and genome is not None:

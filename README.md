@@ -6,7 +6,7 @@ python implementation of an API to facilitate the scanning, integrating, and vis
 ---
 
 ## Requirements
-- python >= 3.5
+- python >= 3.5 and < 3.8
 - pyBigWig==0.3.17
 - biopython==0.0.6
 - matplotlib==3.3.2
@@ -15,10 +15,8 @@ python implementation of an API to facilitate the scanning, integrating, and vis
 - lxml==4.6.1
 - scipy==1.5.3
 - numpy==1.19.2
-- Bio==0.0.6
 - primer3plus==1.0.8
 - jupyter (optional)
-
 
 ---
 
@@ -38,7 +36,7 @@ python implementation of an API to facilitate the scanning, integrating, and vis
 
 1. Download or clone this git repository.  
 2. Use your desired virtual environment solution. i.e. conda or pipx etc..  
-For conda environment I currently recommend installing with python=3.7.  
+For conda environment I currently recommend installing with python=3.7. As bioconda is not supporting 3.8 yet.  
 3. Activte your evironment, navigate to the cloned directory and run:  
 `pip install -r requirements.txt`
 

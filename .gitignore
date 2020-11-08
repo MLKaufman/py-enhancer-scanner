@@ -2,6 +2,9 @@
 *.bw
 *.bed
 *.vscode
+*.csv
+*.gb
+*.genbank
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
