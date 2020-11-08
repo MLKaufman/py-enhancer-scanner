@@ -46,16 +46,16 @@ The prefered method to interact with pyEnhancerScanner is through a Jupyter note
 [ExampleEnhancerScanNotebook.ipynb](https://github.com/MLKaufman/py-enhancer-scanner/blob/main/ExampleEnhancerScanNotebook.ipynb)
 
 Functionality of pyEnhancerScanner is through the creation of a scanobject from the EnhancerScanner class and choosing a data track and genome to analyze:  
-`from pyEnhancerScanner import EnhancerScanner`
+`from pyEnhancerScan import EnhancerScan`
 
-`scanobject = EnhancerScanner()`  
+`scanobject = EnhancerScan()`  
 
 Next you load a track you want to use in the analysis:  
 `scanobject.load_track('bigwigfile.bw', 'mm10)`  
 
 The track must be in the format of bigwig, but can be any sort of conservation, ATAC, etc type data. You will need to supply your own bigwig file which can be obtained from the UCSC Genome browser or from various NCBI Geo datasets. You also supply the reference genome in order to properly grab the sequences.  
 
-Following the creation of the scanobject. Calling the `enhancerscanner()` function will initiate the scan and peak finding.  
+Following the creation of the scanobject. Calling the `enhancer_scanner()` function will initiate the scan and peak finding.  
 
 Example:  
 `scanobject.enhancer_scanner('chr14', 48641226, 48657194, peak_width=10, peak_height=0.5, merge_distance=500, final_size=400, final_mean_conservation=0)`  
