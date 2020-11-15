@@ -164,15 +164,22 @@ class EnhancerScan:
         print('Final Passed Merge/Filters:', len(self.df_results))
 
     def motif_scanner(self, tfactor=None, score_threshold=8, plot=True, fig_width=8, fig_height=4, jaspar_data='JASPAR2020_CORE_vertebrates_non-redundant_pfms_jaspar.txt'):
+        """ Function to scan detected sequences for transcription factor motifs using JASPAR. Multiple transcription factors can be specificied with a plus sign.
+        example: 'OTX2+VSX2'
+        """
+
+        
         if len(self.df_results) < 1:
             raise RuntimeError("You run the ecr_scanner prior to running the motif_scanner!")
 
-        df_motifs = pd.DataFrame(columns=['name', tfactor, 'position', 'score', 'rel_score'])
+        df_motifs = pd.DataFrame(columns=['name', 'tf_factor', 'position', 'score', 'rel_score'])
 
         file_handle = open(jaspar_data)
         tf_dict = {}
+        list_tfs = []
+
         # biopython motif parser using jaspar format
-        for motif in motifs.parse(file_handle, "jaspar"):
+        for motif in motifs.parse(file_handle, fmt="jaspar"):
             tf_dict[motif.name] = motif
         
         if tfactor is None:
@@ -180,28 +187,34 @@ class EnhancerScan:
             print(tf_dict.keys())
         
         else:
+            print(tfactor)
+            list_tfs = list(str(tfactor).split('+'))
             for index, enhancer in self.df_results.iterrows():
                 df_motifs.loc[len(df_motifs)]=(enhancer['name'], tfactor, 0, -1, 0)
 
                 test_seq=Seq(enhancer['sequence'])
 
-                pssm = tf_dict[tfactor].pssm
-                max_score = pssm.max
-                min_score = pssm.min
-                abs_score_threshold = (max_score - min_score) * 0.8 + min_score
-                print("abs score threshold: ", abs_score_threshold)
+                for tfactor in list_tfs:
+                    pssm = tf_dict[tfactor].pssm
+                    max_score = pssm.max
+                    min_score = pssm.min
+                    abs_score_threshold = (max_score - min_score) * 0.8 + min_score
+                    #print("abs score threshold: ", abs_score_threshold)
 
-                for position, score in pssm.search(test_seq):
-                    rel_score = (score - min_score) / (max_score - min_score)
-                    #print(enhancer['name'], position, score, rel_score)
-                    
-                    if score > score_threshold:
-                        df_motifs.loc[len(df_motifs)]=(enhancer['name'], tfactor, position, float(score), rel_score)
-
+                    for position, score in pssm.search(test_seq):
+                        rel_score = (score - min_score) / (max_score - min_score)
+                        #print(enhancer['name'], position, score, rel_score)
+                        
+                        if score > score_threshold:
+                            df_motifs.loc[len(df_motifs)]=(enhancer['name'], tfactor, position, float(score), rel_score)
         if plot is True:
             plt.figure(figsize=(fig_width, fig_height))
-            df_motifs.plot.scatter(x='name', y='score', ylim=score_threshold-1, title='JASPAR detected ' + tfactor+' motif(s)', rot=90)
-        
+            for tfactor in list_tfs:
+                df_plot = df_motifs.loc[df_motifs['tf_factor'] == tfactor]
+                plt.scatter(x=df_plot.name, y=df_plot.score, alpha=0.75)
+            plt.title('JASPAR detected ' + str(list_tfs)+' motif(s)')
+            plt.ylim(bottom=score_threshold-1)
+            plt.legend(list_tfs, loc='center left', bbox_to_anchor=(1, 0.5))        
         else:
             df_motifs = df_motifs[df_motifs['score'] >= 0]
             print(df_motifs)
