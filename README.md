@@ -1,5 +1,8 @@
 # py-enhancer-scanner
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MLKaufman/py-enhancer-scanner/HEAD)
+
+Run with Binder:  
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MLKaufman/py-enhancer-scanner/HEAD)  
+
 python implementation of an API to facilitate the scanning, integrating, and visualizing genomic track data for regions of interest in gene regulation
 ---
 ![Demo Peaks](/demopeaks.png)
@@ -34,12 +37,12 @@ python implementation of an API to facilitate the scanning, integrating, and vis
 - TODO: Remote access of bigwig files
 ---
 ## Installation
-
+ 
 1. Download or clone this git repository.  
 2. Use your desired virtual environment solution. i.e. conda or pipx etc..  
 For conda environment I currently recommend installing with python=3.7. As bioconda is not supporting 3.8 yet.  
 3. Activte your evironment, navigate to the cloned directory and run:  
-`pip install -r requirements.txt`
+`pip install -r requirements.txt` or `conda env create -f environment.yml` 
 
 ---
 ## Basic Usage
