@@ -4,6 +4,6 @@ pandas==1.1.3
 lxml==4.6.1
 scipy==1.5.3
 numpy==1.19.2
-Bio==0.0.6
+biopython==1.78
 primer3plus==1.0.8
 pyBigWig==0.3.17

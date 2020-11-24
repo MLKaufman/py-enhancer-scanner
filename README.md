@@ -1,4 +1,5 @@
 # py-enhancer-scanner
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MLKaufman/py-enhancer-scanner/HEAD)
 python implementation of an API to facilitate the scanning, integrating, and visualizing genomic track data for regions of interest in gene regulation
 ---
 ![Demo Peaks](/demopeaks.png)
@@ -8,7 +9,7 @@ python implementation of an API to facilitate the scanning, integrating, and vis
 ## Requirements
 - python >= 3.5 and < 3.8
 - pyBigWig==0.3.17
-- biopython==0.0.6
+- biopython==1.78
 - matplotlib==3.3.2
 - requests==2.24.0
 - pandas==1.1.3
