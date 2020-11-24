@@ -23,9 +23,7 @@ VERSION = 0.4
 
 # Version 1.0 Feature TODO list:
 # TODO: Compare tracks option?
-# Run via binder
 # Run via streamlit
-# 
 
 class EnhancerScan:
     """ Class to handle scanning of bigwig files. """
@@ -151,10 +149,16 @@ class EnhancerScan:
         self.region_stop = sorted(list_region_stop)[-1]
         self.region_values = self.bw.values(chromosome, self.region_start, self.region_stop)
 
-    def enhancer_scanner(self, chromosome, region_start, region_stop, peak_width=50, peak_height='auto', merge_distance=200, final_size=None, final_mean_peak_values=None, reset=True):
+    def enhancer_scanner(self, chromosome, region_start=0, region_stop=0, peak_width=50, peak_height='auto', merge_distance=200, final_size=None, final_mean_peak_values=None, reset=True):
         if reset is True:
             self.reset_results()
 
+        #allow direct copy from ucsc genome browser
+        if ':' in chromosome:
+            temp = chromosome
+            chromosome, temp = temp.split(':')
+            region_start, region_stop = temp.replace(',','').split('-')
+            
         self.chromosome = chromosome
         self.region_start = region_start
         self.region_stop = region_stop
