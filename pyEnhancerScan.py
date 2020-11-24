@@ -1,23 +1,31 @@
 import pyBigWig
 import os
+from os import path
 import pandas as pd
 from scipy import signal
 import matplotlib.pyplot as plt
 
 from lxml import html
 import requests
+import statistics
+import gzip
+import shutil
 
 from Bio import motifs
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
-#from Bio.Alphabet import IUPAC
-
 
 from primer3plus import Design
 
-VERSION = 0.3
+VERSION = 0.4
+
+# Version 1.0 Feature TODO list:
+# TODO: Compare tracks option?
+# Run via binder
+# Run via streamlit
+# 
 
 class EnhancerScan:
     """ Class to handle scanning of bigwig files. """
@@ -31,15 +39,19 @@ class EnhancerScan:
 
         self.reset_results()
 
-        print("pyEnhancerScanner version " + str(VERSION) + " beta")
-        print("The following tracks are available:\n")
+        print("pyEnhancerScanner version " + str(VERSION) + " beta\n")
+        print("The following tracks are locally available:")
         print(self.list_tracks(), "\n")
-        print("Ability to load remote files: ", pyBigWig.remote)
+        print("To download additional tracks, use the download_tracks() function.")
 
-    def load_track(self, track, genome):
+    def load_track(self, track, genome, reset=True):
+        if reset is True:
+            self.reset_results()
+
         if track is not None and genome is not None:
             self.bw = pyBigWig.open(track)
             self.genome = genome
+            self.track = track
 
             header = self.bw.header()
             self.track_min_value = header['minVal']
@@ -48,12 +60,58 @@ class EnhancerScan:
         else:
             return(print("Error: You must load a track by specifyinhg a bigwig track and a genome."))
 
+    def download_tracks(self, url = '', track_num = 0):        
+        if url == '' and track_num == 0:
+            print('External Track List:')
+            df_quicklist = pd.read_csv('external_tracks.db', delimiter=',', header=0)
+            print(df_quicklist)
+            print("")
+            print("To download one of these tracks, use download_tracks(track_num=X) where X is the track number / index.")
+            print("You can specify your own download url by download_tracks(url='X').")
+        
+        elif url != '':
+            self.download_url(url)
+
+        elif track_num !=0:
+            df_quicklist = pd.read_csv('external_tracks.db', delimiter=',', header=0)
+
+            url = df_quicklist.loc[track_num, 'URL_Path']
+            self.download_url(url)
+
+    def download_jaspar(self, url = ''):
+        print(type(url))
+        if url == '':
+            url = 'http://jaspar.genereg.net/download/CORE/JASPAR2020_CORE_vertebrates_non-redundant_pfms_jaspar.txt'
+        
+        filename = url.split('/')[-1]
+
+        print('Downloading...')
+        r = requests.get(url)
+
+        with open(filename, 'wb') as f:
+            f.write(r.content)
+
+        # Retrieve HTTP meta-data
+        print(r.status_code)
+        print(r.headers['content-type'])
+        print(r.encoding)
+
     def list_tracks(self):
+        tracks = []
         for bigwig in os.listdir(os.getcwd()):
             if bigwig.endswith(".bw"):
                 if bigwig !='None':
-                    print(bigwig)
-
+                    tracks.append(bigwig)
+        return tracks
+                    
+    def list_bedfiles(self):
+        bedfiles = []
+        for bedfiles in os.listdir(os.getcwd()):
+            if bedfiles.endswith(".bed"):
+                if bedfiles !='None':
+                    bedfiles.append(bedfiles)
+        return bedfiles
+    
     def load_bed(self, bed_file, chromosome):
         """ Load an existing bed file for analyzing regions enhancers. """
         # load a bed file
@@ -61,7 +119,6 @@ class EnhancerScan:
         # calculate 
         self.reset_results()
         self.chromosome = chromosome
-
 
         ## read in bed file and convert to dataframe
         df_bed = pd.read_csv(bed_file, sep='\t', comment='t', header=None)
@@ -94,29 +151,50 @@ class EnhancerScan:
         self.region_stop = sorted(list_region_stop)[-1]
         self.region_values = self.bw.values(chromosome, self.region_start, self.region_stop)
 
-    def enhancer_scanner(self, chromosome, region_start, region_stop, peak_width=50, peak_height=.5, merge_distance=200, final_size=None, final_mean_peak_values=None):
+    def enhancer_scanner(self, chromosome, region_start, region_stop, peak_width=50, peak_height='auto', merge_distance=200, final_size=None, final_mean_peak_values=None, reset=True):
+        if reset is True:
+            self.reset_results()
 
         self.chromosome = chromosome
         self.region_start = region_start
         self.region_stop = region_stop
 
-        print("Max peak height in this range: ",self.bw.stats(chromosome, region_start, region_stop, type='max')[0])
         self.region_max_value = self.bw.stats(chromosome, region_start, region_stop, type='max')[0]
-        print("Max peak height in whole track: ", self.track_max_value)
-        print("Minumum peak height in dataset: ", self.track_min_value)
+        self.region_mean_value = self.get_mean_peak_values(self.chromosome, self.region_start, self.region_stop)
+        self.region_median_value = self.get_median_peak_values(self.chromosome, self.region_start, self.region_stop)
+
+        print("Max peak height in this range: ",self.region_max_value)
+        print("Mean peak height in this range: ", self.region_mean_value)
+        print("Median peak height in this range: ", self.region_median_value)
         print("")
+        print("Max peak height across whole track: ", self.track_max_value)
+        print("Minumum peak height across whole track: ", self.track_min_value)
+
+        if peak_height is 'auto':
+            peak_height = self.region_max_value * .25
+            print("")
+            print("Using auto detection of peak height: ", peak_height)
+
+        if peak_height is 'mean':
+            peak_height = self.region_mean_value
+
+        if peak_height is 'median':
+            peak_height = self.region_median_value
+
+        print("")
+
+        # PEAK DETECTION
 
         # grab region values to detect
         self.region_values = self.bw.values(chromosome, region_start, region_stop)
 
         # detect peaks, returns a tuple of an array of peaks and a dictionary or properties
-
         peaks = signal.find_peaks(self.region_values, width = peak_width, height = peak_height)
 
         # make list of unqiue peak widths as tuples and sort
         list_widths = sorted(list(set(zip(list(peaks[1]['left_bases'] + region_start), list(peaks[1]['right_bases'] + region_start))))) # its fixed for final location from widths now
         print('Total Peaks Detected:', len(list_widths))
-        print(list_widths)
+        #print(list_widths)
         
         #TODO: clean up:
         # merge overlapping tuples and tuples within a certain distance
@@ -168,7 +246,6 @@ class EnhancerScan:
         example: 'OTX2+VSX2'
         """
 
-        
         if len(self.df_results) < 1:
             raise RuntimeError("You run the ecr_scanner prior to running the motif_scanner!")
 
@@ -216,10 +293,8 @@ class EnhancerScan:
             plt.ylim(bottom=score_threshold-1)
             plt.legend(list_tfs, loc='center left', bbox_to_anchor=(1, 0.5))        
         else:
-            df_motifs = df_motifs[df_motifs['score'] >= 0]
+            df_motifs = df_motifs[df_motifs['score'] >= 0] # drop negative scores
             print(df_motifs)
-        
-        #drop -1 scores before printing?
     
     def plot_detected_enhancers(self, fig_width=20, fig_height=4, ymax='auto'):
         #calculate the x indexes for plotting
@@ -230,20 +305,14 @@ class EnhancerScan:
 
         plt.figure(figsize=(fig_width, fig_height))
         plt.plot(x_index, self.region_values)
-        plt.title(self.chromosome + ': ' + str(self.region_start) + ' -> ' + str(self.region_stop-1))
+        plt.title(self.track + ' ' + self.genome + ' ' + self.chromosome + ': ' + str(self.region_start) + ' -> ' + str(self.region_stop-1))
         plt.xlabel('Coordinates')
         plt.ylabel('Peak Values')
         plt.ylim(0, ymax)
 
         for index, enhancer in self.df_results.iterrows():
-            plt.annotate(enhancer['name'], ((enhancer['chromStart'] + enhancer['chromEnd'])/2, ymax), fontsize=14, color='red')
-
-            #plt.axhline(y=.5, xmin=self.region_start+enhancer['chromStart'], xmax=self.region_start + enhancer['chromEnd'], linestyle='solid', linewidth=5, color='red')
-            #plt.plot((self.region_start+enhancer['chromStart'], 0.5), (self.region_start + enhancer['chromEnd'], 0.5), '-')
-
-            #TODO: better annotate with line matched to actual coords and not text
-            plt.annotate('[', (enhancer['chromStart'], 0), fontsize = 18, color='red')
-            plt.annotate(']', (enhancer['chromEnd'], 0), fontsize = 18, color='red')
+            plt.annotate(enhancer['name'], ((enhancer['chromStart'] + enhancer['chromEnd'])/2, ymax*.90), fontsize=9, color='red')
+            plt.axvspan(enhancer['chromStart'],enhancer['chromEnd'], 0, ymax, alpha=0.25, color='red')
 
         plt.xticks([self.region_start, (self.region_start+self.region_stop)/2, self.region_stop])
         plt.tight_layout()
@@ -311,6 +380,9 @@ class EnhancerScan:
 
     def get_max_peak_values(self, chromosome, region_start, region_stop):
         return self.bw.stats(chromosome, region_start, region_stop, type='max')[0]
+
+    def get_median_peak_values(self, chromosome, region_start, region_stop):
+        return statistics.median(self.bw.values(chromosome, region_start, region_stop))
 
     def get_sequence(self, genome, chromosome, start, stop, padding_start=0, padding_stop=0):
         #page = requests.get('http://genome.ucsc.edu/cgi-bin/das/mm10/dna?segment=chr14:48645000,48660000')
@@ -384,3 +456,42 @@ class EnhancerScan:
             df_primers.loc[len(df_primers)]=([chromosome, start, stop, name, full_name, mean_peak_values, max_peak_values, size, primer_fwd, fwd_tm, primer_rev, rev_tm, product_size, sequence, padded_sequence])
         print("Success rate= "+str(success)+" out of "+str(total_count))
         df_primers.to_csv(file_name+'.csv', sep=',', index=None)
+
+    def ungzip(self, filepath):
+        new_filepath = filepath.split('.')[-1]
+
+        with gzip.open(filepath, 'rb') as f_in:
+            with open(new_filepath, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+    def download_url(self, url):
+        filename = url.split('/')[-1]
+
+        if '=' in filename:
+            filename = filename.split('=')[-1]
+
+        filename = filename.replace('%2E', '.')
+        filename = filename.replace('%2D', '-')
+        filename = filename.replace('%5F', '_')
+
+        #check if file exists already
+        if path.exists(filename):
+            print("This track already exists!")
+
+        else:
+            print('Downloading ', filename, '...')
+            r = requests.get(url)
+
+            with open(filename, 'wb') as f:
+                f.write(r.content)
+            
+            if int(r.status_code) == 200:
+                print('Download successful!')
+            else:
+                print(r.status_code)
+        
+            if filename.endswith('gz'):
+                print('Unzipping...')
+                self.ungzip(filename)
+                print('Done.')
+            
