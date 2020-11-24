@@ -1,4 +1,4 @@
 Track_Name,Genome,Size,URL_Path
-Mouse 60way Placental Conservation, mm10, 4.2G, http://hgdownload.cse.ucsc.edu/goldenpath/mm10/phastCons60way/mm10.60way.phastCons60wayPlacental.bw
-Mouse P14 ATAC, mm9, 150M, https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE102092&format=file&file=GSE102092%5FATAC%2DDev%2DRet%5FM%5FN%2DP14%2Efree%2Ebw
-Mouse IPSC Cone ATAC, mm10, ??, https://olucdenver-my.sharepoint.com/:u:/g/personal/michael_kaufman_cuanschutz_edu/EWnHzvIrE0tMoJB8W-joktsB_upztk2sk_5bGBtx6BTVRQ?e=ry5cOC
+Mouse 60way Placental Conservation,mm10,4.2G,http://hgdownload.cse.ucsc.edu/goldenpath/mm10/phastCons60way/mm10.60way.phastCons60wayPlacental.bw
+Mouse P14 ATAC, mm9,150M,https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE102092&format=file&file=GSE102092%5FATAC%2DDev%2DRet%5FM%5FN%2DP14%2Efree%2Ebw
+Mouse IPSC Cone ATAC, mm10,??,https://olucdenver-my.sharepoint.com/:u:/g/personal/michael_kaufman_cuanschutz_edu/EWnHzvIrE0tMoJB8W-joktsB_upztk2sk_5bGBtx6BTVRQ?e=ry5cOC

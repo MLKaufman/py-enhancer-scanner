@@ -39,7 +39,8 @@ class EnhancerScan:
 
         print("pyEnhancerScanner version " + str(VERSION) + " beta\n")
         print("The following tracks are locally available:")
-        print(self.list_tracks(), "\n")
+        for track in self.list_tracks(): print(track)
+        print("")
         print("To download additional tracks, use the download_tracks() function.")
 
     def load_track(self, track, genome, reset=True):
@@ -62,7 +63,7 @@ class EnhancerScan:
         if url == '' and track_num == 0:
             print('External Track List:')
             df_quicklist = pd.read_csv('external_tracks.db', delimiter=',', header=0)
-            print(df_quicklist)
+            print(df_quicklist['Size'])
             print("")
             print("To download one of these tracks, use download_tracks(track_num=X) where X is the track number / index.")
             print("You can specify your own download url by download_tracks(url='X').")
@@ -80,19 +81,8 @@ class EnhancerScan:
         print(type(url))
         if url == '':
             url = 'http://jaspar.genereg.net/download/CORE/JASPAR2020_CORE_vertebrates_non-redundant_pfms_jaspar.txt'
-        
-        filename = url.split('/')[-1]
-
-        print('Downloading...')
-        r = requests.get(url)
-
-        with open(filename, 'wb') as f:
-            f.write(r.content)
-
-        # Retrieve HTTP meta-data
-        print(r.status_code)
-        print(r.headers['content-type'])
-        print(r.encoding)
+            
+        self.download_url(url)
 
     def list_tracks(self):
         tracks = []
@@ -160,10 +150,10 @@ class EnhancerScan:
             region_start, region_stop = temp.replace(',','').split('-')
             
         self.chromosome = chromosome
-        self.region_start = region_start
-        self.region_stop = region_stop
+        self.region_start = int(region_start)
+        self.region_stop = int(region_stop)
 
-        self.region_max_value = self.bw.stats(chromosome, region_start, region_stop, type='max')[0]
+        self.region_max_value = self.bw.stats(self.chromosome, self.region_start, self.region_stop, type='max')[0]
         self.region_mean_value = self.get_mean_peak_values(self.chromosome, self.region_start, self.region_stop)
         self.region_median_value = self.get_median_peak_values(self.chromosome, self.region_start, self.region_stop)
 
@@ -190,13 +180,13 @@ class EnhancerScan:
         # PEAK DETECTION
 
         # grab region values to detect
-        self.region_values = self.bw.values(chromosome, region_start, region_stop)
+        self.region_values = self.bw.values(self.chromosome, self.region_start, self.region_stop)
 
         # detect peaks, returns a tuple of an array of peaks and a dictionary or properties
         peaks = signal.find_peaks(self.region_values, width = peak_width, height = peak_height)
 
         # make list of unqiue peak widths as tuples and sort
-        list_widths = sorted(list(set(zip(list(peaks[1]['left_bases'] + region_start), list(peaks[1]['right_bases'] + region_start))))) # its fixed for final location from widths now
+        list_widths = sorted(list(set(zip(list(peaks[1]['left_bases'] + self.region_start), list(peaks[1]['right_bases'] + self.region_start))))) # its fixed for final location from widths now
         print('Total Peaks Detected:', len(list_widths))
         #print(list_widths)
         
