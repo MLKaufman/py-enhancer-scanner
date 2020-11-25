@@ -1,0 +1,11 @@
+Track_Name,Genome,Size,Citation,URL_Path
+mm10.60way.phastCons60wayPlacental,mm10,4.2G,UCSC Genome Browser,http://hgdownload.cse.ucsc.edu/goldenpath/mm10/phastCons60way/mm10.60way.phastCons60wayPlacental.bw
+GSE102092_ATAC-Dev-Ret_E_N-E14.5.free.bw,mm10,220Mb,Aldiri et al. 2017,https://www.dropbox.com/s/vivnm6q82l02m1n/GSE102092_ATAC-Dev-Ret_E_N-E14.5.free.mm10.bw.bw?dl=1
+GSE102092_ATAC-Dev-Ret_E_N-E14.5.free.bw,mm9,228.9 Mb,Aldiri et al. 2017,https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE102092&format=file&file=GSE102092%5FATAC%2DDev%2DRet%5FE%5FN%2DE14%2E5%2Efree%2Ebw
+GSE102092_ATAC-Dev-Ret_E_N-E17.5.free.bw,mm9,217.4 Mb,Aldiri et al. 2017,https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE102092&format=file&file=GSE102092%5FATAC%2DDev%2DRet%5FE%5FN%2DE17%2E5%2Efree%2Ebw
+GSE102092_ATAC-Dev-Ret_I_N-P0.free.bw,mm9,262.6 Mb,Aldiri et al. 2017,https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE102092&format=file&file=GSE102092%5FATAC%2DDev%2DRet%5FI%5FN%2DP0%2Efree%2Ebw
+GSE102092_ATAC-Dev-Ret_I_N-P3.free.bw,mm9,241.6 Mb,Aldiri et al. 2017,https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE102092&format=file&file=GSE102092%5FATAC%2DDev%2DRet%5FI%5FN%2DP3%2Efree%2Ebw
+GSE102092_ATAC-Dev-Ret_M_N-P10.free.bw,mm9,267.8 Mb,Aldiri et al. 2017,https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE102092&format=file&file=GSE102092%5FATAC%2DDev%2DRet%5FM%5FN%2DP10%2Efree%2Ebw
+GSE102092_ATAC-Dev-Ret_M_N-P14.free.bw,mm9,169.6 Mb,Aldiri et al. 2017,https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE102092&format=file&file=GSE102092%5FATAC%2DDev%2DRet%5FM%5FN%2DP14%2Efree%2Ebw
+GSE102092_ATAC-Dev-Ret_M_N-P21.free.bw,mm9,156.4 Mb,Aldiri et al. 2017,https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE102092&format=file&file=GSE102092%5FATAC%2DDev%2DRet%5FM%5FN%2DP21%2Efree%2Ebw
+GSE102092_ATAC-Dev-Ret_M_N-P7.free.bw,mm9,197.6 Mb,Aldiri et al. 2017,https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE102092&format=file&file=GSE102092%5FATAC%2DDev%2DRet%5FM%5FN%2DP7%2Efree%2Ebw
