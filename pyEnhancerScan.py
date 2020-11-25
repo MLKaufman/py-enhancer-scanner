@@ -64,7 +64,7 @@ class EnhancerScan:
         if url == '' and track_num == 0:
             print('External Track List:')
             df_quicklist = pd.read_csv('external_tracks.csv', delimiter=',', header=0)
-            pd.set_option('display.max_colwidth', -1)
+            pd.set_option('display.max_colwidth', None) # so it doesnt truncate columns
             print(df_quicklist.loc[:, :'Size'])
             print("")
             print("To download one of these tracks, use download_tracks(track_num=X) where X is the track number / index.")
