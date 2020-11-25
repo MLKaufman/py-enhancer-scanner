@@ -71,7 +71,13 @@ class EnhancerScan:
             print("You can specify your own download url by download_tracks(url='X').")
         
         elif url != '':
-            self.download_url(url)
+            if type(url) is int:
+                df_quicklist = pd.read_csv('external_tracks.csv', delimiter=',', header=0)
+
+                url = df_quicklist.loc[url, 'URL_Path']
+                self.download_url(url)
+            else:
+                self.download_url(url)
 
         elif track_num !=0:
             df_quicklist = pd.read_csv('external_tracks.csv', delimiter=',', header=0)
