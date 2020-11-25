@@ -59,11 +59,13 @@ class EnhancerScan:
         else:
             return(print("Error: You must load a track by specifyinhg a bigwig track and a genome."))
 
-    def download_tracks(self, url = '', track_num = 0):        
+    def download_tracks(self, url = '', track_num = 0):
+        
         if url == '' and track_num == 0:
             print('External Track List:')
-            df_quicklist = pd.read_csv('external_tracks.db', delimiter=',', header=0)
-            print(df_quicklist['Size'])
+            df_quicklist = pd.read_csv('external_tracks.csv', delimiter=',', header=0)
+            pd.set_option('display.max_colwidth', -1)
+            print(df_quicklist.loc[:, :'Size'])
             print("")
             print("To download one of these tracks, use download_tracks(track_num=X) where X is the track number / index.")
             print("You can specify your own download url by download_tracks(url='X').")
@@ -72,7 +74,7 @@ class EnhancerScan:
             self.download_url(url)
 
         elif track_num !=0:
-            df_quicklist = pd.read_csv('external_tracks.db', delimiter=',', header=0)
+            df_quicklist = pd.read_csv('external_tracks.csv', delimiter=',', header=0)
 
             url = df_quicklist.loc[track_num, 'URL_Path']
             self.download_url(url)
@@ -81,7 +83,7 @@ class EnhancerScan:
         print(type(url))
         if url == '':
             url = 'http://jaspar.genereg.net/download/CORE/JASPAR2020_CORE_vertebrates_non-redundant_pfms_jaspar.txt'
-            
+
         self.download_url(url)
 
     def list_tracks(self):
@@ -461,6 +463,8 @@ class EnhancerScan:
     def download_url(self, url):
         filename = url.split('/')[-1]
 
+        if '?' in filename:
+            filename = filename.split('?')[0]
         if '=' in filename:
             filename = filename.split('=')[-1]
 
