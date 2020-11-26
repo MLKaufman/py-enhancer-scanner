@@ -43,6 +43,16 @@ class EnhancerScan:
         print("")
         print("To download additional tracks, use the download_tracks() function.")
 
+    def list_external_tracks(self):
+        """ Alias for download"""
+        print('External Track List:')
+        df_quicklist = pd.read_csv('external_tracks.csv', delimiter=',', header=0)
+        pd.set_option('display.max_colwidth', None) # so it doesnt truncate columns
+        print(df_quicklist.loc[:, :'Size'])
+        print("")
+        print("To download one of these tracks, use download_tracks(track_num=X) where X is the track number / index.")
+        print("You can specify your own download url by download_tracks(url='X').")
+
     def load_track(self, track, genome, reset=True):
         if reset is True:
             self.reset_results()
@@ -62,13 +72,7 @@ class EnhancerScan:
     def download_tracks(self, url = '', track_num = 0):
         
         if url == '' and track_num == 0:
-            print('External Track List:')
-            df_quicklist = pd.read_csv('external_tracks.csv', delimiter=',', header=0)
-            pd.set_option('display.max_colwidth', None) # so it doesnt truncate columns
-            print(df_quicklist.loc[:, :'Size'])
-            print("")
-            print("To download one of these tracks, use download_tracks(track_num=X) where X is the track number / index.")
-            print("You can specify your own download url by download_tracks(url='X').")
+            self.list_external_tracks()
         
         elif url != '':
             if type(url) is int:
@@ -100,7 +104,7 @@ class EnhancerScan:
                     tracks.append(bigwig)
         return tracks
                     
-    def list_bedfiles(self):
+    def list_bed(self):
         bedfiles = []
         for bedfiles in os.listdir(os.getcwd()):
             if bedfiles.endswith(".bed"):
@@ -266,7 +270,6 @@ class EnhancerScan:
             print(tf_dict.keys())
         
         else:
-            print(tfactor)
             list_tfs = list(str(tfactor).split('+'))
             for index, enhancer in self.df_results.iterrows():
                 df_motifs.loc[len(df_motifs)]=(enhancer['name'], tfactor, 0, -1, 0)
