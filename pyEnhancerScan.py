@@ -24,6 +24,7 @@ VERSION = 0.5
 # Version 1.0 Feature TODO list:
 # Compare tracks option? add subtract divide
 # Compare CHIP to motifs
+# self.load_ChIP('track', tfactor) # plot as overlay on motif data? plot as overlay
 # Run via streamlit
 # advanced Primer design
 # confirm accurate coordinates for motifs
