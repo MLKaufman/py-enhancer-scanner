@@ -91,12 +91,15 @@ Load BED files:
 
 Transcription Factor Motif Scanner:  
 `scanner.download_jaspar()` # downloads the 2020 version of vertebrate position weight matrices if needed  
+Note that when selecting a transcription factor motif that the JASPAR database has named them according to available data. i.e. All CAPS for human and Title for mouse, etc.  
 `scanner.motif_scanner()` # detect transcription factor binding site predicitions  
+Use `scanner.motif_scanner('OTX2+VSX2', plot=False)` for viewing the dataframe containing the list of motifs and scores.
 
 Primer Design:  
 `scanner.get_primers()` # automatically generate primers for amplification of detected regions  
 
 Saved Output:  
-`scanner.write_bed()` # write bed file of detected peak locations  
-`scanner.write_stats() ` # write results to CSV file  
-`scanner.write_genbank()` # outputs an annotated genbank file for importing into DNA sequence programs (Benchling, Snapgene, APe, etc.)  
+`scanner.save_bed()` # save bed file of detected peak locations  
+`scanner.save_motifs()` # save csv file with motifs dataframe  
+`scanner.save_results() ` # save results to CSV file  
+`scanner.save_genbank()` # outputs an annotated genbank file for importing into DNA sequence programs (Benchling, Snapgene, APe, etc.)  
