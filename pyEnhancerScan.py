@@ -22,7 +22,8 @@ from primer3plus import Design
 VERSION = 0.5
 
 # Version 1.0 Feature TODO list:
-# Compare tracks option?
+# Compare tracks option? add subtract divide
+# Compare CHIP to motifs
 # Run via streamlit
 # advanced Primer design
 # confirm accurate coordinates for motifs
@@ -350,6 +351,7 @@ class EnhancerScan:
             plt.ylim(bottom=score_threshold-1)
             plt.legend(list_tfs, loc='center left', bbox_to_anchor=(1, 0.5))
             plt.xticks(rotation=90)
+            plt.ylabel('JASPAR score')
             self.df_motifs = self.df_motifs[self.df_motifs['score'] >= 0] # drop negative scores
         else:
             self.df_motifs = self.df_motifs[self.df_motifs['score'] >= 0] # drop negative scores
@@ -377,13 +379,13 @@ class EnhancerScan:
         plt.tight_layout()
 
     def plot_detected_mean_peak_values(self, sort=False):
-        self.df_results.plot.bar(x='name', y='mean_peak_values', title=self.track)
+        self.df_results.plot.bar(x='name', y='mean_peak_values', title=self.track, ylabel='Mean Peak Values')
 
     def plot_detected_max_peak_values(self, sort=False):
-        self.df_results.plot.bar(x='name', y='max_peak_values', title=self.track)
+        self.df_results.plot.bar(x='name', y='max_peak_values', title=self.track, ylabel='Max Peak Values')
 
     def plot_detected_size(self, sort=False):
-        self.df_results.plot.bar(x='name', y='size_bp', title=self.track)
+        self.df_results.plot.bar(x='name', y='size_bp', title=self.track, ylabel='Size (bp)')
     
     def plot_detected_motifs(self, fig_width=6, fig_height=4):
         pass
