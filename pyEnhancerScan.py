@@ -19,11 +19,15 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 
 from primer3plus import Design
 
-VERSION = 0.4
+VERSION = 0.5
 
 # Version 1.0 Feature TODO list:
-# TODO: Compare tracks option?
+# Compare tracks option?
 # Run via streamlit
+# advanced Primer design
+# confirm accurate coordinates for motifs
+# confirm 
+
 
 class EnhancerScan:
     """ Class to handle scanning of bigwig files. """
@@ -35,13 +39,14 @@ class EnhancerScan:
         self.region_values = None
         self.all_detected_peaks = None
 
-        self.reset_results()
+        self.reset_results() # also generates a new dataframe for self.df_results and self.df_motifs
 
         print("pyEnhancerScanner version " + str(VERSION) + " beta\n")
+        print("Important changes: all write functions have been renamed to save. write_stats is now save_results\n")
         print("The following tracks are locally available:")
         for track in self.list_tracks(): print(track)
         print("")
-        print("To download additional tracks, use the download_tracks() function.")
+        print("To download additional tracks, use the download_tracks() function or list them with list_external_tracks().")
 
     def list_external_tracks(self):
         """ Alias for download"""
@@ -137,6 +142,10 @@ class EnhancerScan:
             name = enhancer['name']
             full_name = enhancer['name']
             size = enhancer['chromEnd'] - enhancer['chromStart']
+            primerf = ''
+            primerftemp = ''
+            primerr = ''
+            primerrtemp = ''
             mean_peak_values = self.get_mean_peak_values(chromosome, start, stop)
             max_peak_values = self.get_max_peak_values(chromosome, start, stop)
             sequence = self.get_sequence(self.genome, chromosome, start, stop)
@@ -144,7 +153,7 @@ class EnhancerScan:
             list_region_start.append(start)
             list_region_stop.append(stop)
 
-            self.df_results.loc[len(self.df_results)]=([chromosome, start, stop, name, full_name, mean_peak_values, max_peak_values, size, sequence])
+            self.df_results.loc[len(self.df_results)]=([chromosome, start, stop, name, full_name, mean_peak_values, max_peak_values, size, primerf, primerftemp, primerr, primerrtemp, sequence])
 
         #need to set self.chromosome, self.region_start, self.region_stop?
         self.region_start = sorted(list_region_start)[0]
@@ -231,13 +240,18 @@ class EnhancerScan:
             start = int(peak[0])
             stop = int(peak[1])
             name = 'P' + str(peak_num+1)
-            full_name = 'PEAK_' + str(peak_num+1) + '_' + str(self.chromosome) + str(self.region_start) + '-' + str(self.region_stop)
+            full_name = 'PEAK_' + str(peak_num+1) + '_' + str(self.chromosome) + ':' + str(self.region_start) + '-' + str(self.region_stop) #TODO change the region to local coords
             size = peak[1] - peak[0]
+            primerf = ''
+            primerftemp = ''
+            primerr = ''
+            primerrtemp = ''
             mean_peak_values = self.get_mean_peak_values(chromosome, start, stop)
             max_peak_values = self.get_max_peak_values(chromosome, start, stop)
             sequence = self.get_sequence(self.genome, chromosome, start, stop)
 
-            self.df_results.loc[len(self.df_results)]=([chromosome, start, stop, name, full_name, mean_peak_values, max_peak_values, size, sequence])
+            #columns=['chrom', 'chromStart', 'chromEnd', 'name', 'full_name', 'mean_peak_values', 'max_peak_values', 'size_bp', 'primerF', 'primerFtemp', 'primerR' 'primerRtemp','sequence']
+            self.df_results.loc[len(self.df_results)]=([chromosome, start, stop, name, full_name, mean_peak_values, max_peak_values, size, primerf, primerftemp, primerr, primerrtemp, sequence])
 
         #filter size and mean peak values
         if final_size is not None:
@@ -247,6 +261,24 @@ class EnhancerScan:
 
         print('Final Passed Merge/Filters:', len(self.df_results))
 
+    def compare_tracks(self, track1, track2, genome, chromosome, region_start, region_stop):
+        # load two tracks and a region
+        # get bw.values
+        # normalize?
+        # perform some operation add, subtract, divide, for each base
+        # load this as a new track
+        # proceed to next step - enhancer scanner
+        self.reset_results()
+
+        # if track is not None and genome is not None:
+        #     self.bw = pyBigWig.open(track)
+        #     self.genome = genome
+        #     self.track = track
+
+        #     header = self.bw.header()
+        #     self.track_min_value = header['minVal']
+        #     self.track_max_value = header['maxVal']
+
     def motif_scanner(self, tfactor=None, score_threshold=8, plot=True, fig_width=8, fig_height=4, jaspar_data='JASPAR2020_CORE_vertebrates_non-redundant_pfms_jaspar.txt'):
         """ Function to scan detected sequences for transcription factor motifs using JASPAR. Multiple transcription factors can be specificied with a plus sign.
         example: 'OTX2+VSX2'
@@ -255,11 +287,14 @@ class EnhancerScan:
         if len(self.df_results) < 1:
             raise RuntimeError("You run the ecr_scanner prior to running the motif_scanner!")
 
-        df_motifs = pd.DataFrame(columns=['name', 'tf_factor', 'position', 'score', 'rel_score'])
+        self.df_motifs = pd.DataFrame(columns=['name', 'full_name', 'tfactor', 'motif_coords', 'position', 'strand', 'score', 'rel_score'])
 
         file_handle = open(jaspar_data)
         tf_dict = {}
         list_tfs = []
+
+        coords = ''
+        strand = ''
 
         # biopython motif parser using jaspar format
         for motif in motifs.parse(file_handle, fmt="jaspar"):
@@ -269,37 +304,55 @@ class EnhancerScan:
             print("You must select a transcription factor to scan for.")
             print(tf_dict.keys())
         
+        for tf in list(str(tfactor).split('+')):
+            if tf not in tf_dict.keys():
+                print(tf + " was not found in the database.\n")
+                print("You must select an available transcription factor to scan for. Both upper and titlecase are valid posibilities.\n")
+                print(tf_dict.keys())
+        
         else:
             list_tfs = list(str(tfactor).split('+'))
             for index, enhancer in self.df_results.iterrows():
-                df_motifs.loc[len(df_motifs)]=(enhancer['name'], tfactor, 0, -1, 0)
 
                 test_seq=Seq(enhancer['sequence'])
 
                 for tfactor in list_tfs:
+                    self.df_motifs.loc[len(self.df_motifs)]=(enhancer['name'], enhancer['full_name'], tfactor, coords, 0, strand, -1, 0) #dummy value to preserve order for ploting
+
                     pssm = tf_dict[tfactor].pssm
+
+                    footprint = len(pssm[0])
+                    start_pos = 0
                     max_score = pssm.max
                     min_score = pssm.min
                     abs_score_threshold = (max_score - min_score) * 0.8 + min_score
-                    #print("abs score threshold: ", abs_score_threshold)
 
                     for position, score in pssm.search(test_seq):
                         rel_score = (score - min_score) / (max_score - min_score)
-                        #print(enhancer['name'], position, score, rel_score)
-                        
+
+                        if int(position) >= 0:
+                            strand = '+'
+                            start_pos = enhancer['chromStart'] + position 
+                        if int(position) < 0:
+                            strand = '-' 
+                            start_pos = enhancer['chromEnd'] + position 
+
+                        coords = enhancer['chrom'] + ':' + str(start_pos) + '-' + str(start_pos + footprint)
+
                         if score > score_threshold:
-                            df_motifs.loc[len(df_motifs)]=(enhancer['name'], tfactor, position, float(score), rel_score)
+                            self.df_motifs.loc[len(self.df_motifs)]=(enhancer['name'], enhancer['full_name'], tfactor, coords, position, strand, float(score), rel_score)
         if plot is True:
             plt.figure(figsize=(fig_width, fig_height))
             for tfactor in list_tfs:
-                df_plot = df_motifs.loc[df_motifs['tf_factor'] == tfactor]
+                df_plot = self.df_motifs.loc[self.df_motifs['tfactor'] == tfactor]
                 plt.scatter(x=df_plot.name, y=df_plot.score, alpha=0.75)
             plt.title('JASPAR detected ' + str(list_tfs)+' motif(s)')
             plt.ylim(bottom=score_threshold-1)
-            plt.legend(list_tfs, loc='center left', bbox_to_anchor=(1, 0.5))        
+            plt.legend(list_tfs, loc='center left', bbox_to_anchor=(1, 0.5))
+            self.df_motifs = self.df_motifs[self.df_motifs['score'] >= 0] # drop negative scores
         else:
-            df_motifs = df_motifs[df_motifs['score'] >= 0] # drop negative scores
-            print(df_motifs)
+            self.df_motifs = self.df_motifs[self.df_motifs['score'] >= 0] # drop negative scores
+            print(self.df_motifs)
     
     def plot_detected_enhancers(self, fig_width=20, fig_height=4, ymax='auto'):
         #calculate the x indexes for plotting
@@ -331,28 +384,30 @@ class EnhancerScan:
     def plot_detected_size(self, sort=False):
         self.df_results.plot.bar(x='name', y='size_bp')
     
-    def plot_detected_motifs(self):
-        #TODO: plotting of detected motifs
+    def plot_detected_motifs(self, fig_width=6, fig_height=4):
         pass
+        # plt.figure(figsize=(fig_width, fig_height))
+        # for tfactor in list_tfs:
+        #     df_plot = self.df_motifs.loc[self.df_motifs['tfactor'] == tfactor]
+        #     plt.scatter(x=df_plot.name, y=df_plot.score, alpha=0.75)
+        # plt.title('JASPAR detected ' + str(list_tfs)+' motif(s)')
+        # plt.ylim(bottom=score_threshold-1)
+        # plt.legend(list_tfs, loc='center left', bbox_to_anchor=(1, 0.5))
     
     def plot_custom(self, x, y):
         self.df_results.plot.bar(x, y)
-
-    def write_bed(self, file_name, ecr_padding=0):
-        #TODO: make this use df_results instead of self.all_detected_peaks
+    
+    def save_bed(self, file_name):
         df_bed = pd.DataFrame(columns=['#chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand'])
 
-        for peak_num, peak in enumerate(self.all_detected_peaks):
-            df_bed.loc[len(df_bed)]=([self.chromosome, self.region_start+peak[0]-ecr_padding, self.region_start+peak[1]+ecr_padding, 'PEAK_' + str(peak_num+1), 0, '.'])
+        #convert df_results into df_bed
+        for index, row in self.df_results.iterrows():
+            df_bed.loc[len(df_bed)]=([row['chrom'], row['chromStart'], row['chromEnd'], row['name'], row['max_peak_values'], 0])
+        df_bed.to_csv(file_name + '.bed', sep='\t', index=None)
+        print(file_name + '.bed' + " Saved!")
 
-            df_bed.to_csv(file_name + '.bed', sep='\t', index=None)
-    
-    def write_stats(self, file_name):
-        self.df_results.to_csv(file_name + '.csv', sep=',', index=None)
-
-    def write_genbank(self, file_name):
+    def save_genbank(self, file_name):
         #TODO: create annotations for each primer
-        #TODO: create annotations for TFBS
 
         sequence_string = self.get_sequence(self.genome, self.chromosome, self.region_start, self.region_stop)
 
@@ -366,6 +421,7 @@ class EnhancerScan:
 
         genbank_record.annotations['molecule_type']='DNA'
 
+        #annotate peaks
         for index, peak in self.df_results.iterrows():
             feature = SeqFeature(FeatureLocation(start=peak['chromStart']-self.region_start, end=peak['chromEnd']-self.region_start), type='Peak', strand=0)
             feature.qualifiers['label'] = peak['name']
@@ -374,11 +430,35 @@ class EnhancerScan:
 
             genbank_record.features.append(feature)
 
+        #annotate motifs
+        for index, motif in self.df_motifs.iterrows():
+
+            coords = motif['motif_coords']
+            coords = coords.split(':')[1]
+            start_pos, stop_pos = coords.split('-')
+
+            feature = SeqFeature(FeatureLocation(start=int(start_pos)-self.region_start, end=int(stop_pos)-self.region_start), type='TF', strand=0)
+            feature.qualifiers['label'] = motif['tfactor']
+            genbank_record.features.append(feature)
+
+
         output_file = open(file_name + '.gb', 'w')
         SeqIO.write(genbank_record, output_file, 'genbank')
+        print(file_name + '.gb' + " Saved!")
+
+    def save_results(self, file_name):
+        self.df_results.to_csv(file_name + '.csv', sep=',', index=None)
+        print(file_name + '.csv' + " Saved!")
+    
+    def save_motifs(self, file_name):
+        self.df_motifs.to_csv(file_name + '.csv', sep=',', index=None)
+        print(file_name + '.csv' + " Saved!")
 
     def reset_results(self):
-        self.df_results = pd.DataFrame(columns=['chrom', 'chromStart', 'chromEnd', 'name', 'full_name', 'mean_peak_values', 'max_peak_values', 'size_bp', 'sequence'])
+        """ Internal function to reset the results and motif dataframes. """
+
+        self.df_results = pd.DataFrame(columns=['chrom', 'chromStart', 'chromEnd', 'name', 'full_name', 'mean_peak_values', 'max_peak_values', 'size_bp', 'primerF', 'primerFtemp', 'primerR', 'primerRtemp','sequence'])
+        self.df_motifs = pd.DataFrame(columns=['name', 'full_name', 'tfactor', 'motif_coords', 'position', 'strand', 'score', 'rel_score'])
 
     def get_mean_peak_values(self, chromosome, region_start, region_stop):
         return self.bw.stats(chromosome, region_start, region_stop)[0]
@@ -404,6 +484,7 @@ class EnhancerScan:
         df_primers = pd.DataFrame(columns=['chrom', 'chromStart', 'chromEnd', 'name', 'full_name', 'mean_peak_values', 'max_peak_values', 'size_bp', 'primer_fwd', 'fwd_tm', 'primer_rev', 'rev_tm', 'product_size','sequence', 'padded_sequence']
         )
 
+        # TODO add to existing results data frame instead
         success = 0
         total_count = 0
 
@@ -459,8 +540,9 @@ class EnhancerScan:
             padded_sequence = template
 
             df_primers.loc[len(df_primers)]=([chromosome, start, stop, name, full_name, mean_peak_values, max_peak_values, size, primer_fwd, fwd_tm, primer_rev, rev_tm, product_size, sequence, padded_sequence])
+        
         print("Success rate= "+str(success)+" out of "+str(total_count))
-        df_primers.to_csv(file_name+'.csv', sep=',', index=None)
+        #df_primers.to_csv(file_name+'.csv', sep=',', index=None)
 
     def ungzip(self, filepath):
         new_filepath = filepath.split('.')[-1]
@@ -502,3 +584,15 @@ class EnhancerScan:
                 self.ungzip(filename)
                 print('Done.')
             
+# phase these out
+    def write_stats(self, file_name):
+        print("Warning this is being renamed to .save_results()")
+        self.save_results(file_name)
+
+    def write_genbank(self, file_name):
+        print("Warning this is being renamed to .save_results()")
+        self.save_genbank(file_name)
+
+    def write_bed(self, file_name):
+        print("Warning this is being renamed to .save_bed()")
+        self.save_bed(file_name)
