@@ -26,7 +26,8 @@ VERSION = 0.5
 # Run via streamlit
 # advanced Primer design
 # confirm accurate coordinates for motifs
-# confirm 
+# confirm position / other attriutes of jaspar scanner
+# title plots with loaded track
 
 
 class EnhancerScan:
@@ -95,7 +96,6 @@ class EnhancerScan:
             self.download_url(url)
 
     def download_jaspar(self, url = ''):
-        print(type(url))
         if url == '':
             url = 'http://jaspar.genereg.net/download/CORE/JASPAR2020_CORE_vertebrates_non-redundant_pfms_jaspar.txt'
 
@@ -376,13 +376,13 @@ class EnhancerScan:
         plt.tight_layout()
 
     def plot_detected_mean_peak_values(self, sort=False):
-        self.df_results.plot.bar(x='name', y='mean_peak_values')
+        self.df_results.plot.bar(x='name', y='mean_peak_values', title=self.track)
 
     def plot_detected_max_peak_values(self, sort=False):
-        self.df_results.plot.bar(x='name', y='max_peak_values')
+        self.df_results.plot.bar(x='name', y='max_peak_values', title=self.track)
 
     def plot_detected_size(self, sort=False):
-        self.df_results.plot.bar(x='name', y='size_bp')
+        self.df_results.plot.bar(x='name', y='size_bp', title=self.track)
     
     def plot_detected_motifs(self, fig_width=6, fig_height=4):
         pass
