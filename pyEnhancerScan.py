@@ -349,6 +349,7 @@ class EnhancerScan:
             plt.title('JASPAR detected ' + str(list_tfs)+' motif(s)')
             plt.ylim(bottom=score_threshold-1)
             plt.legend(list_tfs, loc='center left', bbox_to_anchor=(1, 0.5))
+            plt.xticks(rotation=90)
             self.df_motifs = self.df_motifs[self.df_motifs['score'] >= 0] # drop negative scores
         else:
             self.df_motifs = self.df_motifs[self.df_motifs['score'] >= 0] # drop negative scores
