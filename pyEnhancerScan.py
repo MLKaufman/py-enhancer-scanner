@@ -110,12 +110,12 @@ class EnhancerScan:
         return tracks
                     
     def list_bed(self):
-        bedfiles = []
-        for bedfiles in os.listdir(os.getcwd()):
-            if bedfiles.endswith(".bed"):
-                if bedfiles !='None':
-                    bedfiles.append(bedfiles)
-        return bedfiles
+        list_bedfiles = []
+        for bedfile in os.listdir(os.getcwd()):
+            if bedfile.endswith(".bed"):
+                if bedfile !='None':
+                    list_bedfiles.append(bedfile)
+        return list_bedfiles
     
     def load_bed(self, bed_file, chromosome):
         """ Load an existing bed file for analyzing regions enhancers. """
