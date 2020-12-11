@@ -35,6 +35,9 @@ VERSION = 0.5
 class EnhancerScan:
     """ Class to handle scanning of bigwig files. """
     def __init__(self):
+        pd.options.display.max_rows = 4000
+        pd.options.display.max_columns = 4000
+
         self.chromosome = None
         self.region_start = None
         self.region_stop = None
@@ -55,7 +58,7 @@ class EnhancerScan:
         """ Alias for download"""
         print('External Track List:')
         df_quicklist = pd.read_csv('external_tracks.csv', delimiter=',', header=0)
-        pd.set_option('display.max_colwidth', None) # so it doesnt truncate columns
+        #pd.set_option('display.max_colwidth', None) # so it doesnt truncate columns
         print(df_quicklist.loc[:, :'Size'])
         print("")
         print("To download one of these tracks, use download_tracks(track_num=X) where X is the track number / index.")
