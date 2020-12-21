@@ -22,3 +22,4 @@ tk=8.6.10=hbc83047_0
 wheel=0.35.1=pyhd3eb1b0_0
 xz=5.2.5=h7b6447c_0
 zlib=1.2.11=h7b6447c_3
+pybigwig==0.3.17
