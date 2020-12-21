@@ -2,6 +2,7 @@
 
 Run with Binder:  
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MLKaufman/py-enhancer-scanner/HEAD)  
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/mlkaufman/py-enhancer-scanner/main)  
 
 python implementation of an API to facilitate the scanning, integrating, and visualizing genomic track data for regions of interest in gene regulation
 ---
