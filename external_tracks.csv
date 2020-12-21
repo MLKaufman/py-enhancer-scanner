@@ -1,5 +1,4 @@
 Track_Name,Genome,Size,Citation,URL_Path
-60way.phastCons60wayPlacental.mm10.bw,mm10,4.4G,UCSC Genome Browser,https://www.dropbox.com/s/jt8kplnz8drudwz/60way.phastCons60wayPlacental.mm10.bw?dl=1
 GSE102092_Retina_E14.5_ATAC.mm10.bw,mm10,232M,Aldiri et al. 2017,https://www.dropbox.com/s/vivnm6q82l02m1n/GSE102092_Retina_E14.5_ATAC.mm10.bw?dl=1
 GSE102092_Retina_E17.5_ATAC.mm10.bw,mm10,220M,Aldiri et al. 2017,https://www.dropbox.com/s/qobpaq8nip1y8w4/GSE102092_Retina_E17.5_ATAC.mm10.bw?dl=1
 GSE102092_Retina_P0_ATAC.mm10.bw,mm10,267M,Aldiri et al. 2017,https://www.dropbox.com/s/3gqxq0opcshqwu2/GSE102092_Retina_P0_ATAC.mm10.bw?dl=1
@@ -9,3 +8,4 @@ GSM499736_Retina_CRX_ChiPseq_lowres.mm10.bw,mm10,25M,Corbo et al. 2010,https://w
 GSM1306912_Retina_OTX2_ChIPseq_lowres.mm10.bw,mm10,66M,Sameul et al. 2014,https://www.dropbox.com/s/zg1av4lvdewbnvg/GSM1306912_Retina_OTX2_ChIPseq_lowres.mm10.bw?dl=1
 GSM4008316_Retina_P12_ASCL1_ChIPseq.mm10.bw,mm10,174M,Aldiri et al. 2017,https://www.dropbox.com/s/jz2u1q1mia2du24/GSM4008316_Retina_P12_ASCL1_ChIPseq.mm10.bw?dl=1
 GSM4008317_Retina_P0_ASCL1_ChIPseq_lowres.mm10.bw,mm10,467M,,https://www.dropbox.com/s/uwlc0v63g4rft8o/GSM4008317_Retina_P0_ASCL1_ChIPseq_lowres.mm10.bw?dl=1
+60way.phastCons60wayPlacental.mm10.bw,mm10,4.4G,UCSC Genome Browser,https://www.dropbox.com/s/jt8kplnz8drudwz/60way.phastCons60wayPlacental.mm10.bw?dl=1

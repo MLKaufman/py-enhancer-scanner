@@ -45,7 +45,12 @@ class EnhancerScan:
         self.region_values = None
         self.all_detected_peaks = None
 
+        self.auto_threshold = None
+
         self.reset_results() # also generates a new dataframe for self.df_results and self.df_motifs
+
+        ### Streamlit App functionality
+        self.last_figure = None # conforms to streamlit depreciating global pyplot functionality
 
         print("pyEnhancerScanner version " + str(VERSION) + " beta\n")
         print("Important changes: all write functions have been renamed to save. write_stats is now save_results\n")
@@ -63,6 +68,7 @@ class EnhancerScan:
         print("")
         print("To download one of these tracks, use download_tracks(track_num=X) where X is the track number / index.")
         print("You can specify your own download url by download_tracks(url='X').")
+        return df_quicklist
 
     def load_track(self, track, genome, reset=True):
         if reset is True:
@@ -190,16 +196,19 @@ class EnhancerScan:
         print("Max peak height across whole track: ", self.track_max_value)
         print("Minumum peak height across whole track: ", self.track_min_value)
 
-        if peak_height is 'auto':
+        if peak_height == 'auto':
             peak_height = self.region_max_value * .25
+            self.auto_threshold = peak_height
             print("")
             print("Using auto detection of peak height: ", peak_height)
 
-        if peak_height is 'mean':
-            peak_height = self.region_mean_value
+        elif peak_height == 'mean':
+            peak_height = float(self.region_mean_value)
 
-        if peak_height is 'median':
-            peak_height = self.region_median_value
+        elif peak_height == 'median':
+            peak_height = float(self.region_median_value)
+        else:
+            peak_height = float(peak_height)
 
         print("")
 
@@ -402,7 +411,12 @@ class EnhancerScan:
         # plt.legend(list_tfs, loc='center left', bbox_to_anchor=(1, 0.5))
     
     def plot_custom(self, x, y):
-        self.df_results.plot.bar(x, y)
+        fig, ax = plt.subplots()
+        ax.bar(self.df_results[x], self.df_results[y])
+        ax.set_title(self.track)
+        ax.set_xlabel(x)
+        ax.set_ylabel(y)
+        self.last_figure = fig
     
     def save_bed(self, file_name):
         df_bed = pd.DataFrame(columns=['#chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand'])
