@@ -45,3 +45,4 @@ parso==0.7.1
 pexpect==4.8.0
 pickleshare==0.7.5
 scipy==1.5.3
+primer3plus==1.0.8
