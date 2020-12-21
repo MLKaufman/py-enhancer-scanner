@@ -9,6 +9,8 @@ from Bio import motifs
 import base64
 from io import BytesIO
 
+st.set_option('deprecation.showPyplotGlobalUse', False)
+
 def download_link(object_to_download, download_filename, download_link_text):
     """
     Generates a link to download the given object_to_download.
@@ -30,7 +32,7 @@ def download_link(object_to_download, download_filename, download_link_text):
 
     return f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
 
-#st.set_option('deprecation.showPyplotGlobalUse', False)
+
 st.title('PyEnhancerScanner Streamlit App')
 
 scanner = EnhancerScan()
