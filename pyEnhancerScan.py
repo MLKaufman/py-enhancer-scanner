@@ -25,7 +25,6 @@ VERSION = 0.5
 # Compare tracks option? add subtract divide
 # Compare CHIP to motifs
 # self.load_ChIP('track', tfactor) # plot as overlay on motif data? plot as overlay
-# Run via streamlit
 # advanced Primer design
 # confirm accurate coordinates for motifs
 # confirm position / other attriutes of jaspar scanner
@@ -62,10 +61,10 @@ class EnhancerScan:
     def list_external_tracks(self):
         """ Alias for download"""
         print('External Track List:')
-        df_quicklist = pd.read_csv('external_tracks.csv', delimiter=',', header=0)
+        df_quicklist = pd.read_csv('external_tracks.db', delimiter=',', header=0)
         #pd.set_option('display.max_colwidth', None) # so it doesnt truncate columns
-        print(df_quicklist.loc[:, :'Size'])
-        print("")
+        #print(df_quicklist.loc[:, :'Size'])
+        #print("")
         print("To download one of these tracks, use download_tracks(track_num=X) where X is the track number / index.")
         print("You can specify your own download url by download_tracks(url='X').")
         return df_quicklist
@@ -93,7 +92,7 @@ class EnhancerScan:
         
         elif url != '':
             if type(url) is int:
-                df_quicklist = pd.read_csv('external_tracks.csv', delimiter=',', header=0)
+                df_quicklist = pd.read_csv('external_tracks.db', delimiter=',', header=0)
 
                 url = df_quicklist.loc[url, 'URL_Path']
                 self.download_url(url)
@@ -101,7 +100,7 @@ class EnhancerScan:
                 self.download_url(url)
 
         elif track_num !=0:
-            df_quicklist = pd.read_csv('external_tracks.csv', delimiter=',', header=0)
+            df_quicklist = pd.read_csv('external_tracks.db', delimiter=',', header=0)
 
             url = df_quicklist.loc[track_num, 'URL_Path']
             self.download_url(url)
