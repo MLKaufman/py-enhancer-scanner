@@ -34,12 +34,12 @@ def download_link(object_to_download, download_filename, download_link_text):
 
 
 st.title('PyEnhancerScanner Streamlit App')
-
 scanner = EnhancerScan()
-st.write('python implementation of an API to facilitate the scanning, integrating, and visualizing genomic track data for regions of interest in gene regulation')
+st.write('interactive implementation of a Python API to facilitate the scanning, integrating, and visualizing genomic track data for regions of interest in gene regulation')
+st.write('Source code and documentation: https://github.com/MLKaufman/py-enhancer-scanner')
+st.write('Author: Michael Kaufman - 2021')
+
 st.header('Track and genome to analyze:')
-#st.write('Local available tracks:')
-#st.write(scanner.list_tracks())
 
 col1, col2 = st.beta_columns([3, 1])
 with col1:
@@ -96,7 +96,17 @@ if st.checkbox('Plot Max Peak Values'):
 #     st.pyplot(scanner.last_figure)
 
 if st.checkbox('Load BED file'):
-    pass
+    col1, col2 = st.beta_columns(2)
+    with col1:
+        genome = st.selectbox( 'Pick a genome', ['mm10'], key='bedgenome')
+    with col2:
+        chrom = st.text_input('Chromosome:', 'chr14')
+
+    bedfile = st.file_uploader('BED File')
+    try:
+        scanner.load_bed(bedfile, 'chr14')
+    except ValueError:
+        pass
 
 if st.checkbox('Transcription Factor Motif Analysis'):
     tf_dict = {}
