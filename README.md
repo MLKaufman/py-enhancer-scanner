@@ -1,10 +1,10 @@
 # py-enhancer-scanner
-
-Run with Binder:  
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MLKaufman/py-enhancer-scanner/HEAD)  
   
-Run with Streamlit:  
+Run as an interactive webapp with Streamlit:  
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/mlkaufman/py-enhancer-scanner/main)  
+
+Run as an interactive Jupyter Notebook with Binder:  
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MLKaufman/py-enhancer-scanner/HEAD)  
 
 python implementation of an API to facilitate the scanning, integrating, and visualizing genomic track data for regions of interest in gene regulation
 ---
@@ -53,7 +53,11 @@ If primer3-py fails on your system, you can try `conda install primer3-py -c bio
 
 ---
 ## Basic Usage
-The prefered method to interact with pyEnhancerScanner is through a Jupyter notebook interface. An example of this:  
+
+Get started immeadiately! Launch an interactive instance with either Streamlit or Binder:  
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/mlkaufman/py-enhancer-scanner/main)  [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MLKaufman/py-enhancer-scanner/HEAD)  
+
+The prefered method to interact on your local machine with pyEnhancerScanner is through a Jupyter notebook interface. An example of this:  
 [ExampleEnhancerScanNotebook.ipynb](https://github.com/MLKaufman/py-enhancer-scanner/blob/main/ExampleEnhancerScanNotebook.ipynb)
 
 Functionality of pyEnhancerScanner is through the creation of a scanobject from the EnhancerScanner class and choosing a data track and genome to analyze:  
