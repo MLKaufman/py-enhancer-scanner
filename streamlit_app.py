@@ -82,12 +82,10 @@ if st.button('Download Dataframe as CSV', 1):
     st.markdown(tmp_download_link, unsafe_allow_html=True)
 
 st.header('Additional downstream analysis:')
-if st.checkbox('Plot Sizes'):
-    scanner.plot_detected_size()
-    st.pyplot()
 
-if st.checkbox('Plot Max Peak Values'):
-    scanner.plot_detected_max_peak_values()
+if st.checkbox('Plot Peaks'):
+    y_axis = st.selectbox('Y Axis', ['size_bp', 'mean_peak_values', 'max_peak_values'])
+    scanner.plot_custom('name', y_axis)
     st.pyplot()
 
 if st.checkbox('Load BED file'):
