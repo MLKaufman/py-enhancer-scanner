@@ -7,10 +7,11 @@ import matplotlib.pyplot as plt
 from pyEnhancerScan import EnhancerScan
 from Bio import motifs
 import base64
+import os
 from io import BytesIO
 
 # TODO:
-# custom track upload 
+# custom track upload
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
@@ -34,6 +35,13 @@ def download_link(object_to_download, download_filename, download_link_text):
     b64 = base64.b64encode(object_to_download.encode()).decode()
 
     return f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
+
+def get_binary_file_downloader_html(bin_file, file_label='File'):
+    with open(bin_file, 'rb') as f:
+        data = f.read()
+    bin_str = base64.b64encode(data).decode()
+    href = f'<a href="data:application/octet-stream;base64,{bin_str}" download="{os.path.basename(bin_file)}">Download {file_label}</a>'
+    return href
 
 st.title('PyEnhancerScanner Streamlit App')
 scanner = EnhancerScan()
@@ -81,6 +89,10 @@ if st.button('Download Dataframe as CSV', 1):
     tmp_download_link = download_link(scanner.df_results, 'Results.csv', 'CSV generated! Click here to download your data!')
     st.markdown(tmp_download_link, unsafe_allow_html=True)
 
+if st.button('Download Bedfile of Peaks'):
+    scanner.save_bed('Bedfile')
+    st.markdown(get_binary_file_downloader_html('Bedfile.bed', 'Bedfile generated! Click here to download your data!'), unsafe_allow_html=True)
+
 st.header('Additional downstream analysis:')
 
 if st.checkbox('Plot Peaks'):
@@ -122,3 +134,7 @@ if st.checkbox('Transcription Factor Motif Analysis'):
     if st.button('Download Dataframe as CSV', 2):
         tmp_download_link = download_link(scanner.df_motifs, 'Motifs.csv', 'CSV generated! Click here to download your data!')
         st.markdown(tmp_download_link, unsafe_allow_html=True)
+
+    if st.button('Download Genbank'):
+        scanner.save_genbank('Genbank')
+        st.markdown(get_binary_file_downloader_html('Genbank.gb', 'Genbank generated! Click here to download your data!'), unsafe_allow_html=True)
