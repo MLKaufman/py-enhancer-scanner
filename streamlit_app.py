@@ -9,6 +9,9 @@ from Bio import motifs
 import base64
 from io import BytesIO
 
+# TODO:
+# custom track upload 
+
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
 def download_link(object_to_download, download_filename, download_link_text):
@@ -32,7 +35,6 @@ def download_link(object_to_download, download_filename, download_link_text):
 
     return f'<a href="data:file/txt;base64,{b64}" download="{download_filename}">{download_link_text}</a>'
 
-
 st.title('PyEnhancerScanner Streamlit App')
 scanner = EnhancerScan()
 st.write('interactive implementation of a Python API to facilitate the scanning, integrating, and visualizing genomic track data for regions of interest in gene regulation')
@@ -40,6 +42,10 @@ st.write('Source code and documentation: https://github.com/MLKaufman/py-enhance
 st.write('Author: Michael Kaufman - 2021')
 
 st.header('Track and genome to analyze:')
+
+with st.beta_expander('View built in browser:'):
+    #components.iframe('https://genome.ucsc.edu/cgi-bin/hgTracks?db=mm10', height=400, width=800, scrolling=True)
+    components.iframe('https://igv.org/app/', height=500, width=700, scrolling=True)
 
 col1, col2 = st.beta_columns([3, 1])
 with col1:
@@ -53,11 +59,6 @@ if track not in scanner.list_tracks():
     with st.spinner('Downloading track, please wait...'):
         scanner.download_tracks(index)
     st.success('Done!')
-
-
-
-#st.header('Genome Browser:')
-#components.iframe('https://genome.ucsc.edu/cgi-bin/hgTracks?db=mm10', height=500, width=1000)
 
 st.header('Genomic coordinates for peak analysis:')
 
@@ -75,12 +76,10 @@ scanner.plot_detected_enhancers(fig_height=4, fig_width=10)
 st.pyplot()
 st.write('Track Max Height:', scanner.track_max_value, 'Track Min Height:', scanner.track_min_value, 'Auto Peak Threshold:', scanner.auto_threshold)
 
-
-with st.beta_expander('View Results Data Frame'):
-    scanner.df_results
-    if st.button('Download Dataframe as CSV', 1):
-        tmp_download_link = download_link(scanner.df_results, 'Results.csv', 'CSV generated! Click here to download your data!')
-        st.markdown(tmp_download_link, unsafe_allow_html=True)
+scanner.df_results
+if st.button('Download Dataframe as CSV', 1):
+    tmp_download_link = download_link(scanner.df_results, 'Results.csv', 'CSV generated! Click here to download your data!')
+    st.markdown(tmp_download_link, unsafe_allow_html=True)
 
 st.header('Additional downstream analysis:')
 if st.checkbox('Plot Sizes'):
@@ -90,10 +89,6 @@ if st.checkbox('Plot Sizes'):
 if st.checkbox('Plot Max Peak Values'):
     scanner.plot_detected_max_peak_values()
     st.pyplot()
-
-# if st.checkbox('Custom Plot'):
-#     scanner.plot_custom('name', 'mean_peak_values')
-#     st.pyplot(scanner.last_figure)
 
 if st.checkbox('Load BED file'):
     col1, col2 = st.beta_columns(2)
@@ -125,8 +120,7 @@ if st.checkbox('Transcription Factor Motif Analysis'):
     scanner.motif_scanner(multi, plot=True)
     st.pyplot()
 
-    with st.beta_expander('View Motif Data Frame'):
-        st.write(scanner.df_motifs)
-        if st.button('Download Dataframe as CSV', 2):
-            tmp_download_link = download_link(scanner.df_motifs, 'Motifs.csv', 'CSV generated! Click here to download your data!')
-            st.markdown(tmp_download_link, unsafe_allow_html=True)
+    st.write(scanner.df_motifs)
+    if st.button('Download Dataframe as CSV', 2):
+        tmp_download_link = download_link(scanner.df_motifs, 'Motifs.csv', 'CSV generated! Click here to download your data!')
+        st.markdown(tmp_download_link, unsafe_allow_html=True)
