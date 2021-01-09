@@ -2,6 +2,7 @@ import pyBigWig
 import os
 from os import path
 import pandas as pd
+import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
 
@@ -29,7 +30,6 @@ VERSION = 0.5
 # confirm accurate coordinates for motifs
 # confirm position / other attriutes of jaspar scanner
 # title plots with loaded track
-
 
 class EnhancerScan:
     """ Class to handle scanning of bigwig files. """
@@ -84,6 +84,117 @@ class EnhancerScan:
 
         else:
             return(print("Error: You must load a track by specifyinhg a bigwig track and a genome."))
+
+    def load_multitrack(self, track1, track2, genome, coords, comparison_type, peak_height='auto', reset=True):
+        if reset is True:
+            self.reset_results()
+
+        track1bw = pyBigWig.open(track1)
+        track2bw = pyBigWig.open(track2)
+
+        self.genome = genome
+
+        self.track = track1 + ' ' + comparison_type + ' ' + track2
+
+        chromosome, temp = coords.split(':')
+        region_start, region_stop = temp.replace(',','').split('-')
+
+        region_start = int(region_start)
+        region_stop = int(region_stop)
+
+        if comparison_type == 'subtract':
+            new_track = np.subtract(np.array(track1bw.values(chromosome, region_start, region_stop)), np.array(track2bw.values(chromosome, region_start, region_stop)))
+        if comparison_type == 'add':
+            new_track = np.add(np.array(track1bw.values(chromosome, region_start, region_stop)), np.array(track2bw.values(chromosome, region_start, region_stop)))
+        if comparison_type == 'divide':
+            new_track = np.true_divide(np.array(track1bw.values(chromosome, region_start, region_stop)), np.array(track2bw.values(chromosome, region_start, region_stop)))
+        if comparison_type == 'multiply':
+            new_track = np.multiply(np.array(track1bw.values(chromosome, region_start, region_stop)), np.array(track2bw.values(chromosome, region_start, region_stop)))
+
+        new_track = np.nan_to_num(new_track, nan=0.0, posinf=100, neginf=0.0)
+        new_track = new_track.clip(min=0)
+
+        ## Enhancer scanning
+        #(self, chromosome, region_start=0, region_stop=0, peak_width=50, peak_height='auto', merge_distance=200, final_size=None, final_mean_peak_values=None, reset=True)
+        peak_width = 50
+        merge_distance = 200
+        final_size = None
+        final_mean_peak_values = None
+
+        self.chromosome = chromosome
+        self.region_start = int(region_start)
+        self.region_stop = int(region_stop)
+
+        self.region_max_value = new_track.max()
+
+        if peak_height == 'auto':
+            peak_height = self.region_max_value * .25
+            self.auto_threshold = peak_height
+        else:
+            peak_height = float(peak_height)
+
+        # PEAK DETECTION
+
+        # grab region values to detect
+        self.region_values = new_track
+
+        # detect peaks, returns a tuple of an array of peaks and a dictionary or properties
+        peaks = signal.find_peaks(self.region_values, width = peak_width, height = peak_height)
+
+        # make list of unqiue peak widths as tuples and sort
+        list_widths = sorted(list(set(zip(list(peaks[1]['left_bases'] + self.region_start), list(peaks[1]['right_bases'] + self.region_start))))) # its fixed for final location from widths now
+        print('Total Peaks Detected:', len(list_widths))
+        #print(list_widths)
+        
+        #TODO: clean up:
+        # merge overlapping tuples and tuples within a certain distance
+        list_merged = []
+
+        for higher in sorted(list_widths, key=lambda tup: tup[0]): #sorted by lower bound
+            if not list_merged:
+                list_merged.append(higher)
+            else:
+                lower = list_merged[-1]
+                # test for intersection between lower and higher:
+                # we know via sorting that lower[0] <= higher[0]
+                if higher[0] <= lower[1]:
+                    upper_bound = max(lower[1], higher[1])
+                    list_merged[-1] = (lower[0], upper_bound)  # replace by merged interval
+                elif higher[0] - lower[1] < merge_distance: #seems to work #TODO: confirm this works and whether it needs to be run multiple times
+                    upper_bound = max(lower[1], higher[1])
+                    list_merged[-1] = (lower[0], upper_bound)  # replace by merged interval
+                else:
+                    list_merged.append(higher)
+
+        self.all_detected_peaks = list_merged
+
+        # update results dataframe
+        # 'chrom', 'chromStart', 'chromEnd', 'name', 'full_name', 'mean_peak_values', 'max_peak_values', 'size_bp', 'sequence'
+        for peak_num, peak in enumerate(self.all_detected_peaks):
+            chromosome = self.chromosome
+            start = int(peak[0])
+            stop = int(peak[1])
+            name = 'P' + str(peak_num+1)
+            full_name = 'PEAK_' + str(peak_num+1) + '_' + str(self.chromosome) + ':' + str(self.region_start) + '-' + str(self.region_stop) #TODO change the region to local coords
+            size = peak[1] - peak[0]
+            primerf = ''
+            primerftemp = ''
+            primerr = ''
+            primerrtemp = ''
+            mean_peak_values = 0
+            max_peak_values = 0
+            sequence = self.get_sequence(self.genome, chromosome, start, stop)
+
+            #columns=['chrom', 'chromStart', 'chromEnd', 'name', 'full_name', 'mean_peak_values', 'max_peak_values', 'size_bp', 'primerF', 'primerFtemp', 'primerR' 'primerRtemp','sequence']
+            self.df_results.loc[len(self.df_results)]=([chromosome, start, stop, name, full_name, mean_peak_values, max_peak_values, size, primerf, primerftemp, primerr, primerrtemp, sequence])
+
+        #filter size and mean peak values
+        if final_size is not None:
+            self.df_results = self.df_results[self.df_results.size_bp >= final_size]
+        if final_mean_peak_values is not None:
+            self.df_results = self.df_results[self.df_results.mean_peak_values >= final_mean_peak_values]
+
+        print('Final Passed Merge/Filters:', len(self.df_results))
 
     def download_tracks(self, url = '', track_num = 0):
         
