@@ -50,7 +50,7 @@ st.sidebar.title('PyEnhancerScanner Streamlit App')
 st.sidebar.write('interactive implementation of a Python API to facilitate the scanning, integrating, and visualizing genomic track data for regions of interest in gene regulation')
 
 st.sidebar.header("Analysis Modes:")
-sidebar_result = st.sidebar.radio("Mode", ['Single Track', 'Compare Tracks', 'Analyze BEDfile'])
+sidebar_result = st.sidebar.radio("Mode", ['Single Track', 'Compare Tracks', 'Analyze BEDfile', 'Genome Browser'])
 
 st.sidebar.write('Source code and documentation: https://github.com/MLKaufman/py-enhancer-scanner')
 st.sidebar.write('Author: Michael Kaufman - 2021')
@@ -254,3 +254,8 @@ if sidebar_result == 'Analyze BEDfile':
     if st.button('Download Genbank'):
         scanner.save_genbank('Genbank')
         st.markdown(get_binary_file_downloader_html('Genbank.gb', 'Genbank generated! Click here to download your data!'), unsafe_allow_html=True)
+
+if sidebar_result == 'Genome Browser':
+    st.title('Genome Browser')
+    st.write('track urls....')
+    components.iframe('https://igv.org/app/', height=500, width=700, scrolling=True)
