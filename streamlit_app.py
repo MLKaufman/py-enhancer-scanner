@@ -10,7 +10,7 @@ import base64
 import os
 from io import BytesIO
 
-GENOME_LIST = ['mm10']
+GENOME_LIST = ['mm10', 'mm9']
 
 # TODO:
 # custom track upload
