@@ -37,15 +37,39 @@ class EnhancerScan:
         pd.options.display.max_rows = 4000
         pd.options.display.max_columns = 4000
 
+        self.track1_name = None
+        self.track1_bw = None
+        self.track1_values = None
+        self.track1_min_value = None
+        self.track1_max_value = None
+
+        self.track2_name = None
+        self.track2_bw = None
+        self.track2_values = None
+        self.track2_min_value = None
+        self.track2_max_value = None
+
+        self.track_comparison_type = None
+
+        self.track_plot_header = None
+
+        self.genome = None
         self.chromosome = None
+
         self.region_start = None
         self.region_stop = None
 
         self.region_values = None
+        self.region_max_value = None
+        self.region_mean_value = None
+        self.region_median_value = None
+        
         self.all_detected_peaks = None
 
         self.auto_threshold = None
 
+        self.df_results = None
+        self.df_motifs = None
         self.reset_results() # also generates a new dataframe for self.df_results and self.df_motifs
 
         ### Streamlit App functionality
@@ -69,132 +93,36 @@ class EnhancerScan:
         print("You can specify your own download url by download_tracks(url='X').")
         return df_quicklist
 
-    def load_track(self, track, genome, reset=True):
+    def load_track(self, genome, track1, track2=None, track_comparison_type=None, reset=True): #TODO add multitrack here?
         if reset is True:
             self.reset_results()
 
-        if track is not None and genome is not None:
-            self.bw = pyBigWig.open(track)
+        if track1 is not None and genome is not None:
+            
             self.genome = genome
-            self.track = track
+            self.track1_name = track1
+            self.track1_bw = pyBigWig.open(track1)
 
-            header = self.bw.header()
-            self.track_min_value = header['minVal']
-            self.track_max_value = header['maxVal']
+            self.track_plot_header = track1
+
+            header = self.track1_bw.header()
+            self.track1_min_value = header['minVal']
+            self.track1_max_value = header['maxVal']
+
+        if track2 is not None and track_comparison_type is not None:
+            self.track2_bw = pyBigWig.open(track2)
+            self.track2_name = track2
+
+            track2_header = self.track2_bw.header()
+            self.track2_min_value = track2_header['minVal']
+            self.track2_max_value = track2_header['maxVal']
+
+
+            self.track_comparison_type = track_comparison_type
+            self.track_plot_header = track1 + ' ' + track_comparison_type + ' ' + track2
 
         else:
             return(print("Error: You must load a track by specifyinhg a bigwig track and a genome."))
-
-    def load_multitrack(self, track1, track2, genome, coords, comparison_type, peak_height='auto', reset=True):
-        if reset is True:
-            self.reset_results()
-
-        track1bw = pyBigWig.open(track1)
-        track2bw = pyBigWig.open(track2)
-
-        self.genome = genome
-
-        self.track = track1 + ' ' + comparison_type + ' ' + track2
-
-        chromosome, temp = coords.split(':')
-        region_start, region_stop = temp.replace(',','').split('-')
-
-        region_start = int(region_start)
-        region_stop = int(region_stop)
-
-        if comparison_type == 'subtract':
-            new_track = np.subtract(np.array(track1bw.values(chromosome, region_start, region_stop)), np.array(track2bw.values(chromosome, region_start, region_stop)))
-        if comparison_type == 'add':
-            new_track = np.add(np.array(track1bw.values(chromosome, region_start, region_stop)), np.array(track2bw.values(chromosome, region_start, region_stop)))
-        if comparison_type == 'divide':
-            new_track = np.true_divide(np.array(track1bw.values(chromosome, region_start, region_stop)), np.array(track2bw.values(chromosome, region_start, region_stop)))
-        if comparison_type == 'multiply':
-            new_track = np.multiply(np.array(track1bw.values(chromosome, region_start, region_stop)), np.array(track2bw.values(chromosome, region_start, region_stop)))
-
-        new_track = np.nan_to_num(new_track, nan=0.0, posinf=100, neginf=0.0)
-        new_track = new_track.clip(min=0)
-
-        ## Enhancer scanning
-        #(self, chromosome, region_start=0, region_stop=0, peak_width=50, peak_height='auto', merge_distance=200, final_size=None, final_mean_peak_values=None, reset=True)
-        peak_width = 50
-        merge_distance = 200
-        final_size = None
-        final_mean_peak_values = None
-
-        self.chromosome = chromosome
-        self.region_start = int(region_start)
-        self.region_stop = int(region_stop)
-
-        self.region_max_value = new_track.max()
-
-        if peak_height == 'auto':
-            peak_height = self.region_max_value * .25
-            self.auto_threshold = peak_height
-        else:
-            peak_height = float(peak_height)
-
-        # PEAK DETECTION
-
-        # grab region values to detect
-        self.region_values = new_track
-
-        # detect peaks, returns a tuple of an array of peaks and a dictionary or properties
-        peaks = signal.find_peaks(self.region_values, width = peak_width, height = peak_height)
-
-        # make list of unqiue peak widths as tuples and sort
-        list_widths = sorted(list(set(zip(list(peaks[1]['left_bases'] + self.region_start), list(peaks[1]['right_bases'] + self.region_start))))) # its fixed for final location from widths now
-        print('Total Peaks Detected:', len(list_widths))
-        #print(list_widths)
-        
-        #TODO: clean up:
-        # merge overlapping tuples and tuples within a certain distance
-        list_merged = []
-
-        for higher in sorted(list_widths, key=lambda tup: tup[0]): #sorted by lower bound
-            if not list_merged:
-                list_merged.append(higher)
-            else:
-                lower = list_merged[-1]
-                # test for intersection between lower and higher:
-                # we know via sorting that lower[0] <= higher[0]
-                if higher[0] <= lower[1]:
-                    upper_bound = max(lower[1], higher[1])
-                    list_merged[-1] = (lower[0], upper_bound)  # replace by merged interval
-                elif higher[0] - lower[1] < merge_distance: #seems to work #TODO: confirm this works and whether it needs to be run multiple times
-                    upper_bound = max(lower[1], higher[1])
-                    list_merged[-1] = (lower[0], upper_bound)  # replace by merged interval
-                else:
-                    list_merged.append(higher)
-
-        self.all_detected_peaks = list_merged
-
-        # update results dataframe
-        # 'chrom', 'chromStart', 'chromEnd', 'name', 'full_name', 'mean_peak_values', 'max_peak_values', 'size_bp', 'sequence'
-        for peak_num, peak in enumerate(self.all_detected_peaks):
-            chromosome = self.chromosome
-            start = int(peak[0])
-            stop = int(peak[1])
-            name = 'P' + str(peak_num+1)
-            full_name = 'PEAK_' + str(peak_num+1) + '_' + str(self.chromosome) + ':' + str(self.region_start) + '-' + str(self.region_stop) #TODO change the region to local coords
-            size = peak[1] - peak[0]
-            primerf = ''
-            primerftemp = ''
-            primerr = ''
-            primerrtemp = ''
-            mean_peak_values = 0
-            max_peak_values = 0
-            sequence = self.get_sequence(self.genome, chromosome, start, stop)
-
-            #columns=['chrom', 'chromStart', 'chromEnd', 'name', 'full_name', 'mean_peak_values', 'max_peak_values', 'size_bp', 'primerF', 'primerFtemp', 'primerR' 'primerRtemp','sequence']
-            self.df_results.loc[len(self.df_results)]=([chromosome, start, stop, name, full_name, mean_peak_values, max_peak_values, size, primerf, primerftemp, primerr, primerrtemp, sequence])
-
-        #filter size and mean peak values
-        if final_size is not None:
-            self.df_results = self.df_results[self.df_results.size_bp >= final_size]
-        if final_mean_peak_values is not None:
-            self.df_results = self.df_results[self.df_results.mean_peak_values >= final_mean_peak_values]
-
-        print('Final Passed Merge/Filters:', len(self.df_results))
 
     def download_tracks(self, url = '', track_num = 0):
         
@@ -238,14 +166,14 @@ class EnhancerScan:
                     list_bedfiles.append(bedfile)
         return list_bedfiles
     
-    def load_bed(self, bed_file, chromosome):
+    def load_bed(self, genome, bed_file):
         """ Load an existing bed file for analyzing regions enhancers. """
         # load a bed file
         # for each entry in bed file, create an entry in df_results.
         # calculate 
         self.reset_results()
-        self.chromosome = chromosome
 
+        self.genome = genome
         ## read in bed file and convert to dataframe
         df_bed = pd.read_csv(bed_file, sep='\t', comment='t', header=None)
         header = ['chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand', 'thickStart', 'thickEnd', 'itemRgb', 'blockCount', 'blockSizes', 'blockStarts']
@@ -258,6 +186,7 @@ class EnhancerScan:
         #convert to df_results
         for index, enhancer in df_bed.iterrows():
             chromosome = enhancer['chrom']
+            self.chromosome = chromosome #from bed files
             start = enhancer['chromStart']
             stop = enhancer['chromEnd']
             name = enhancer['name']
@@ -267,8 +196,8 @@ class EnhancerScan:
             primerftemp = ''
             primerr = ''
             primerrtemp = ''
-            mean_peak_values = self.get_mean_peak_values(chromosome, start, stop)
-            max_peak_values = self.get_max_peak_values(chromosome, start, stop)
+            mean_peak_values = self.get_mean_range_values(chromosome, start, stop)
+            max_peak_values = self.get_max_range_values(chromosome, start, stop)
             sequence = self.get_sequence(self.genome, chromosome, start, stop)
             
             list_region_start.append(start)
@@ -276,10 +205,11 @@ class EnhancerScan:
 
             self.df_results.loc[len(self.df_results)]=([chromosome, start, stop, name, full_name, mean_peak_values, max_peak_values, size, primerf, primerftemp, primerr, primerrtemp, sequence])
 
-        #need to set self.chromosome, self.region_start, self.region_stop?
         self.region_start = sorted(list_region_start)[0]
         self.region_stop = sorted(list_region_stop)[-1]
-        self.region_values = self.bw.values(chromosome, self.region_start, self.region_stop)
+
+        if self.track1_bw != None:
+            self.region_values = self.track1_bw.values(self.chromosome, self.region_start, self.region_stop) # but we need a track loaded....
 
     def enhancer_scanner(self, chromosome, region_start=0, region_stop=0, peak_width=50, peak_height='auto', merge_distance=200, final_size=None, final_mean_peak_values=None, reset=True):
         if reset is True:
@@ -295,22 +225,15 @@ class EnhancerScan:
         self.region_start = int(region_start)
         self.region_stop = int(region_stop)
 
-        self.region_max_value = self.bw.stats(self.chromosome, self.region_start, self.region_stop, type='max')[0]
-        self.region_mean_value = self.get_mean_peak_values(self.chromosome, self.region_start, self.region_stop)
-        self.region_median_value = self.get_median_peak_values(self.chromosome, self.region_start, self.region_stop)
+        ### GET REGION VALUES universal for single or multiple tracks
 
-        print("Max peak height in this range: ",self.region_max_value)
-        print("Mean peak height in this range: ", self.region_mean_value)
-        print("Median peak height in this range: ", self.region_median_value)
-        print("")
-        print("Max peak height across whole track: ", self.track_max_value)
-        print("Minumum peak height across whole track: ", self.track_min_value)
+        self.get_region_values()
 
         if peak_height == 'auto':
-            peak_height = self.region_max_value * .25
-            self.auto_threshold = peak_height
+            self.auto_threshold = self.region_max_value * .25
+            peak_height = self.auto_threshold
             print("")
-            print("Using auto detection of peak height: ", peak_height)
+            print("Using auto detection of peak height: ", self.auto_threshold)
 
         elif peak_height == 'mean':
             peak_height = float(self.region_mean_value)
@@ -320,15 +243,9 @@ class EnhancerScan:
         else:
             peak_height = float(peak_height)
 
-        print("")
-
         # PEAK DETECTION
-
-        # grab region values to detect
-        self.region_values = self.bw.values(self.chromosome, self.region_start, self.region_stop)
-
         # detect peaks, returns a tuple of an array of peaks and a dictionary or properties
-        peaks = signal.find_peaks(self.region_values, width = peak_width, height = peak_height)
+        peaks = signal.find_peaks(self.region_values, width = float(peak_width), height = peak_height)
 
         # make list of unqiue peak widths as tuples and sort
         list_widths = sorted(list(set(zip(list(peaks[1]['left_bases'] + self.region_start), list(peaks[1]['right_bases'] + self.region_start))))) # its fixed for final location from widths now
@@ -370,8 +287,8 @@ class EnhancerScan:
             primerftemp = ''
             primerr = ''
             primerrtemp = ''
-            mean_peak_values = self.get_mean_peak_values(chromosome, start, stop)
-            max_peak_values = self.get_max_peak_values(chromosome, start, stop)
+            mean_peak_values = self.get_mean_range_values(start-self.region_start, stop-self.region_start)
+            max_peak_values = self.get_max_range_values(start-self.region_start, stop-self.region_start)
             sequence = self.get_sequence(self.genome, chromosome, start, stop)
 
             #columns=['chrom', 'chromStart', 'chromEnd', 'name', 'full_name', 'mean_peak_values', 'max_peak_values', 'size_bp', 'primerF', 'primerFtemp', 'primerR' 'primerRtemp','sequence']
@@ -384,24 +301,6 @@ class EnhancerScan:
             self.df_results = self.df_results[self.df_results.mean_peak_values >= final_mean_peak_values]
 
         print('Final Passed Merge/Filters:', len(self.df_results))
-
-    def compare_tracks(self, track1, track2, genome, chromosome, region_start, region_stop):
-        # load two tracks and a region
-        # get bw.values
-        # normalize?
-        # perform some operation add, subtract, divide, for each base
-        # load this as a new track
-        # proceed to next step - enhancer scanner
-        self.reset_results()
-
-        # if track is not None and genome is not None:
-        #     self.bw = pyBigWig.open(track)
-        #     self.genome = genome
-        #     self.track = track
-
-        #     header = self.bw.header()
-        #     self.track_min_value = header['minVal']
-        #     self.track_max_value = header['maxVal']
 
     def motif_scanner(self, tfactor=None, score_threshold=8, plot=True, fig_width=8, fig_height=4, jaspar_data='JASPAR2020_CORE_vertebrates_non-redundant_pfms_jaspar.txt'):
         """ Function to scan detected sequences for transcription factor motifs using JASPAR. Multiple transcription factors can be specificied with a plus sign.
@@ -489,7 +388,7 @@ class EnhancerScan:
 
         plt.figure(figsize=(fig_width, fig_height))
         plt.plot(x_index, self.region_values)
-        plt.title(self.track + ' ' + self.genome + ' ' + self.chromosome + ': ' + str(self.region_start) + ' -> ' + str(self.region_stop-1))
+        plt.title(self.track_plot_header + ' ' + self.genome + ' ' + self.chromosome + ': ' + str(self.region_start) + ' -> ' + str(self.region_stop-1))
         plt.xlabel('Coordinates')
         plt.ylabel('Peak Values')
         plt.ylim(0, ymax)
@@ -538,8 +437,6 @@ class EnhancerScan:
         print(file_name + '.bed' + " Saved!")
 
     def save_genbank(self, file_name):
-        #TODO: create annotations for each primer
-
         sequence_string = self.get_sequence(self.genome, self.chromosome, self.region_start, self.region_stop)
 
         sequence_object = Seq(sequence_string)
@@ -591,14 +488,61 @@ class EnhancerScan:
         self.df_results = pd.DataFrame(columns=['chrom', 'chromStart', 'chromEnd', 'name', 'full_name', 'mean_peak_values', 'max_peak_values', 'size_bp', 'primerF', 'primerFtemp', 'primerR', 'primerRtemp','sequence'])
         self.df_motifs = pd.DataFrame(columns=['name', 'full_name', 'tfactor', 'motif_coords', 'position', 'strand', 'score', 'rel_score'])
 
-    def get_mean_peak_values(self, chromosome, region_start, region_stop):
-        return self.bw.stats(chromosome, region_start, region_stop)[0]
+    def get_mean_range_values(self, start, stop):
+        return self.region_values[start:stop+1].mean()
 
-    def get_max_peak_values(self, chromosome, region_start, region_stop):
-        return self.bw.stats(chromosome, region_start, region_stop, type='max')[0]
+    def get_max_range_values(self, start, stop):
+        print(start, stop)
+        print(self.region_values)
+        print(self.region_values[start:stop])
+        return self.region_values[start:stop+1].max()
 
-    def get_median_peak_values(self, chromosome, region_start, region_stop):
-        return statistics.median(self.bw.values(chromosome, region_start, region_stop))
+        #self.bw.stats(chromosome, region_start, region_stop, type='max')[0]
+
+    #def get_median_peak_values(self, chromosome, region_start, region_stop):
+    #    return statistics.median(self.bw.values(chromosome, region_start, region_stop))
+
+    def get_region_values(self):
+        region_start = int(self.region_start)
+        region_stop = int(self.region_stop)
+        chromosome = self.chromosome
+
+        # If multiple track comparison
+        if self.track2_bw != None:
+            region_values = None
+
+            if self.track_comparison_type == 'subtract':
+                region_values = np.subtract(np.array(self.track1_bw.values(chromosome, region_start, region_stop)), np.array(self.track2_bw.values(chromosome, region_start, region_stop)))
+            if self.track_comparison_type == 'add':
+                region_values = np.add(np.array(self.track1_bw.values(chromosome, region_start, region_stop)), np.array(self.track2_bw.values(chromosome, region_start, region_stop)))
+            if self.track_comparison_type == 'divide':
+                region_values = np.true_divide(np.array(self.track1_bw.values(chromosome, region_start, region_stop)), np.array(self.track2_bw.values(chromosome, region_start, region_stop)))
+            if self.track_comparison_type == 'multiply':
+                region_values = np.multiply(np.array(self.track1_bw.values(chromosome, region_start, region_stop)), np.array(self.track2_bw.values(chromosome, region_start, region_stop)))
+
+            self.region_values = np.nan_to_num(region_values, nan=0.0, posinf=100, neginf=0.0).clip(min=0)
+            
+            self.region_max_value = self.region_values.max()
+            self.region_mean_value = self.region_values.mean()
+
+
+        else: #only one track
+        # grab region values to detect
+
+            self.region_values = np.array(self.track1_bw.values(chromosome, region_start, region_stop))
+            self.region_max_value = self.region_values.max()
+            self.region_mean_value = self.region_values.mean()
+
+            #self.region_max_value = self.track1_bw(self.chromosome, self.region_start, self.region_stop, type='max')[0]
+            #self.region_mean_value = self.get_mean_peak_values(self.chromosome, self.region_start, self.region_stop)
+            #self.region_median_value = self.get_median_peak_values(self.chromosome, self.region_start, self.region_stop)
+
+        print("Max peak height in this range: ",self.region_max_value)
+        print("Mean peak height in this range: ", self.region_mean_value)
+        print("Median peak height in this range: ", self.region_median_value)
+        print("")
+        print("Max peak height across whole track: ", self.track1_max_value, self.track2_max_value)
+        print("Minumum peak height across whole track1: ", self.track1_min_value, self.track2_min_value)
 
     def get_sequence(self, genome, chromosome, start, stop, padding_start=0, padding_stop=0):
         #page = requests.get('http://genome.ucsc.edu/cgi-bin/das/mm10/dna?segment=chr14:48645000,48660000')
@@ -610,70 +554,6 @@ class EnhancerScan:
         stop = int(stop)
         page = requests.get('http://genome.ucsc.edu/cgi-bin/das/'+genome+'/dna?segment='+chromosome+':'+str(start-padding_start)+','+str(stop+padding_stop))
         return html.fromstring(page.content).text_content().strip().replace('\n', '')
-
-    def get_primers(self, file_name, padding=0, primer_walk=False, infusionf=None, infusionr=None, verbose=False):
-        df_primers = pd.DataFrame(columns=['chrom', 'chromStart', 'chromEnd', 'name', 'full_name', 'mean_peak_values', 'max_peak_values', 'size_bp', 'primer_fwd', 'fwd_tm', 'primer_rev', 'rev_tm', 'product_size','sequence', 'padded_sequence']
-        )
-
-        # TODO add to existing results data frame instead
-        success = 0
-        total_count = 0
-
-        for index, enhancer in self.df_results.iterrows():
-            total_count+=1
-            padded_sequence = 'NA'
-
-            chromosome = enhancer['chrom']
-            start = enhancer['chromStart']
-            stop = enhancer['chromEnd']
-            name = enhancer['name']
-            full_name = enhancer['full_name']
-            mean_peak_values = enhancer['mean_peak_values']
-            max_peak_values = enhancer['max_peak_values']
-            size = enhancer['size_bp']
-
-            #primer magic
-            primer_design = Design()
-            template = self.get_sequence(self.genome, chromosome, start, stop, padding)
-
-            primer_design.settings.template(template)
-            primer_design.settings.as_cloning_task()
-            primer_design.settings.primer_num_return(1)
-            primer_design.settings.product_size((size, 10000))
-            results, explain = primer_design.run()
-
-            if verbose is True:
-                print(results)
-                print(explain)
-                #print(dict(primer_design.params))
-
-            if len(results.values()) > 0:
-                success+=1
-                print(name + " = success!")
-                primer_fwd = results[0]['LEFT']['SEQUENCE']
-                fwd_tm = results[0]['LEFT']['TM']
-                primer_rev = results[0]['RIGHT']['SEQUENCE']
-                rev_tm = results[0]['RIGHT']['TM']
-                product_size = results[0]['PAIR']['PRODUCT_SIZE']
-
-            else: #TODO: padding walking to get primers made
-                primer_fwd = "not found"
-                fwd_tm = "not found"
-                primer_rev = "not found"
-                rev_tm = "not found"
-                product_size = "none"
-
-            if infusionf is not None and infusionr is not None and primer_fwd != "not found" and primer_rev != "not found":
-                primer_fwd = str(infusionf) + primer_fwd
-                primer_rev = str(infusionr) + primer_rev
-
-            sequence = enhancer['sequence']
-            padded_sequence = template
-
-            df_primers.loc[len(df_primers)]=([chromosome, start, stop, name, full_name, mean_peak_values, max_peak_values, size, primer_fwd, fwd_tm, primer_rev, rev_tm, product_size, sequence, padded_sequence])
-        
-        print("Success rate= "+str(success)+" out of "+str(total_count))
-        #df_primers.to_csv(file_name+'.csv', sep=',', index=None)
 
     def ungzip(self, filepath):
         new_filepath = filepath.split('.')[-1]
