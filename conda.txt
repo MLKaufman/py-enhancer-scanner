@@ -24,3 +24,4 @@ xz=5.2.5=h7b6447c_0
 zlib=1.2.11=h7b6447c_3
 pybigwig==0.3.17
 matplotlib==3.3.2
+lxml==4.6.1
