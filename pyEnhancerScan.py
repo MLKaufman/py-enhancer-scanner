@@ -74,7 +74,6 @@ class EnhancerScan:
         self.last_figure = None # conforms to streamlit depreciating global pyplot functionality
 
         print("pyEnhancerScanner version " + str(VERSION) + " beta\n")
-        print("Important changes: all write functions have been renamed to save. write_stats is now save_results\n")
         print("The following tracks are locally available:")
         for track in self.list_tracks(): print(track)
         print("")
