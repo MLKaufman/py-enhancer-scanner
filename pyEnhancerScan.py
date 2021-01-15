@@ -23,8 +23,7 @@ from primer3plus import Design
 VERSION = 0.6
 
 # Version 1.0 Feature TODO list:
-# Compare CHIP to motifs
-# self.load_ChIP('track', tfactor) # plot as overlay on motif data? plot as overlay
+# Compare CHIP to motifs # self.load_ChIP('track', tfactor) # plot as overlay on motif data? plot as overlay
 # confirm accurate coordinates for motifs
 # confirm position / other attriutes of jaspar scanner
 # remove references to primer generation
@@ -259,7 +258,6 @@ class EnhancerScan:
         list_widths = sorted(list(set(zip(list(peaks[1]['left_bases'] + self.region_start), list(peaks[1]['right_bases'] + self.region_start))))) # its fixed for final location from widths now
         print('Total Peaks Detected:', len(list_widths))
         
-        #TODO: clean up:
         # merge overlapping tuples and tuples within a certain distance
         list_merged = []
 
@@ -592,16 +590,3 @@ class EnhancerScan:
                 print('Unzipping...')
                 self.ungzip(filename)
                 print('Done.')
-            
-# phase these out
-    def write_stats(self, file_name):
-        print("Warning this is being renamed to .save_results()")
-        self.save_results(file_name)
-
-    def write_genbank(self, file_name):
-        print("Warning this is being renamed to .save_results()")
-        self.save_genbank(file_name)
-
-    def write_bed(self, file_name):
-        print("Warning this is being renamed to .save_bed()")
-        self.save_bed(file_name)
