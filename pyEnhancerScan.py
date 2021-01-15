@@ -20,16 +20,13 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 
 from primer3plus import Design
 
-VERSION = 0.5
+VERSION = 0.6
 
 # Version 1.0 Feature TODO list:
-# Compare tracks option? add subtract divide
 # Compare CHIP to motifs
 # self.load_ChIP('track', tfactor) # plot as overlay on motif data? plot as overlay
-# advanced Primer design
 # confirm accurate coordinates for motifs
 # confirm position / other attriutes of jaspar scanner
-# title plots with loaded track
 
 class EnhancerScan:
     """ Class to handle scanning of bigwig files. """
@@ -196,7 +193,7 @@ class EnhancerScan:
             primerftemp = ''
             primerr = ''
             primerrtemp = ''
-            mean_peak_values = self.get_mean_range_values(chromosome, start, stop)
+            mean_peak_values = self.get_mean_range_values(chromosome, start, stop) #should be bqsed on track
             max_peak_values = self.get_max_range_values(chromosome, start, stop)
             sequence = self.get_sequence(self.genome, chromosome, start, stop)
             
