@@ -14,6 +14,9 @@ GENOME_LIST = ['mm10', 'mm9']
 
 # TODO:
 # custom track upload
+# descriptions
+# convert to new pyplot method
+
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
@@ -88,13 +91,13 @@ if sidebar_result == 'Single Track':
     with col2:
         user_peak_height = st.text_input('Peak height threshold [ auto, mean, median, or a value]:','auto')
 
-    scanner.load_track(track, genome)
+    scanner.load_track(genome, track)
     print(user_peak_height)
     scanner.enhancer_scanner(coords, peak_height=user_peak_height)
 
     scanner.plot_detected_enhancers(fig_height=4, fig_width=10)
     st.pyplot()
-    st.write('Track Max Height:', scanner.track_max_value, 'Track Min Height:', scanner.track_min_value, 'Auto Peak Threshold:', scanner.auto_threshold)
+    st.write('Track Max Height:', scanner.track1_max_value, 'Track Min Height:', scanner.track1_min_value, 'Auto Peak Threshold:', scanner.auto_threshold)
 
     scanner.df_results
     if st.button('Download Dataframe as CSV', 1):
@@ -182,9 +185,9 @@ if sidebar_result == 'Compare Tracks':
         user_peak_height = st.text_input('Peak height threshold [ auto, mean, median, or a value]:','auto')
 
     #scanner.load_track(track, genome)
-    scanner.load_multitrack(track1, track2, genome, coords, operation, user_peak_height)
+    scanner.load_track(genome, track1, track2, operation)
 
-    #scanner.enhancer_scanner(coords, peak_height=user_peak_height)
+    scanner.enhancer_scanner(coords, peak_height=user_peak_height)
 
     scanner.plot_detected_enhancers(fig_height=4, fig_width=10)
     st.pyplot()
@@ -211,20 +214,18 @@ if sidebar_result == 'Analyze BEDfile':
     col1, col2 = st.beta_columns(2)
     with col1:
         genome = st.selectbox( 'Pick a genome', GENOME_LIST, key='bedgenome')
-    with col2:
-        chrom = st.text_input('Chromosome:', 'chr14')
 
     # dummy data to allow bedfile
     track = 'GSE102092_Retina_E14.5_ATAC.mm10.bw'
     coords = 'chr14:48,605,306-48,630,475'
     user_peak_height = 'auto'
 
-    scanner.load_track(track, genome)
-    scanner.enhancer_scanner(coords, peak_height=user_peak_height)
+    #scanner.load_track(track, genome)
+    #scanner.enhancer_scanner(coords, peak_height=user_peak_height)
 
     bedfile = st.file_uploader('BED File')
     try:
-        scanner.load_bed(bedfile, 'chr14')
+        scanner.load_bed(genome, bedfile)
     except ValueError:
         pass
 
