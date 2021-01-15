@@ -3,7 +3,6 @@ import streamlit.components.v1 as components
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from pyEnhancerScan import EnhancerScan
 from Bio import motifs
 import base64
