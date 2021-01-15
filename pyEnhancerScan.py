@@ -165,7 +165,7 @@ class EnhancerScan:
                     list_bedfiles.append(bedfile)
         return list_bedfiles
     
-    def load_bed(self, genome, bed_file):
+    def load_bed(self, genome, bed_file, track=None):
         """ Load an existing bed file for analyzing regions enhancers. """
         # load a bed file
         # for each entry in bed file, create an entry in df_results.
@@ -195,9 +195,18 @@ class EnhancerScan:
             primerftemp = ''
             primerr = ''
             primerrtemp = ''
-            mean_peak_values = self.get_mean_range_values(chromosome, start, stop) #should be bqsed on track
-            max_peak_values = self.get_max_range_values(chromosome, start, stop)
-            sequence = self.get_sequence(self.genome, chromosome, start, stop)
+
+            if track != None:
+                self.load_track(genome, track, reset=False)
+                self.chromosome = enhancer['chrom']
+                mean_peak_values = self.get_mean_range_values(start, stop) #should be based on track
+                max_peak_values = self.get_max_range_values(start, stop)
+                sequence = self.get_sequence(self.genome, chromosome, start, stop)
+                
+            else:
+                mean_peak_values = 0
+                max_peak_values = 0
+                sequence = self.get_sequence(self.genome, chromosome, start, stop)
             
             list_region_start.append(start)
             list_region_stop.append(stop)
