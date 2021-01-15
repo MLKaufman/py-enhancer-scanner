@@ -27,6 +27,8 @@ VERSION = 0.6
 # self.load_ChIP('track', tfactor) # plot as overlay on motif data? plot as overlay
 # confirm accurate coordinates for motifs
 # confirm position / other attriutes of jaspar scanner
+# remove references to primer generation
+# convert to new plot mechanic
 
 class EnhancerScan:
     """ Class to handle scanning of bigwig files. """
@@ -90,7 +92,7 @@ class EnhancerScan:
         print("You can specify your own download url by download_tracks(url='X').")
         return df_quicklist
 
-    def load_track(self, genome, track1, track2=None, track_comparison_type=None, reset=True): #TODO add multitrack here?
+    def load_track(self, genome, track1, track2=None, track_comparison_type=None, reset=True):
         if reset is True:
             self.reset_results()
 
@@ -247,7 +249,6 @@ class EnhancerScan:
         # make list of unqiue peak widths as tuples and sort
         list_widths = sorted(list(set(zip(list(peaks[1]['left_bases'] + self.region_start), list(peaks[1]['right_bases'] + self.region_start))))) # its fixed for final location from widths now
         print('Total Peaks Detected:', len(list_widths))
-        #print(list_widths)
         
         #TODO: clean up:
         # merge overlapping tuples and tuples within a certain distance
@@ -398,13 +399,13 @@ class EnhancerScan:
         plt.tight_layout()
 
     def plot_detected_mean_peak_values(self, sort=False):
-        self.df_results.plot.bar(x='name', y='mean_peak_values', title=self.track, ylabel='Mean Peak Values')
+        self.df_results.plot.bar(x='name', y='mean_peak_values', title=self.track_plot_header, ylabel='Mean Peak Values')
 
     def plot_detected_max_peak_values(self, sort=False):
-        self.df_results.plot.bar(x='name', y='max_peak_values', title=self.track, ylabel='Max Peak Values')
+        self.df_results.plot.bar(x='name', y='max_peak_values', title=self.track_plot_header, ylabel='Max Peak Values')
 
     def plot_detected_size(self, sort=False):
-        self.df_results.plot.bar(x='name', y='size_bp', title=self.track, ylabel='Size (bp)')
+        self.df_results.plot.bar(x='name', y='size_bp', title=self.track_plot_header, ylabel='Size (bp)')
     
     def plot_detected_motifs(self, fig_width=6, fig_height=4):
         pass
@@ -419,7 +420,7 @@ class EnhancerScan:
     def plot_custom(self, x, y):
         fig, ax = plt.subplots()
         ax.bar(self.df_results[x], self.df_results[y])
-        ax.set_title(self.track)
+        ax.set_title(self.track_plot_header)
         ax.set_xlabel(x)
         ax.set_ylabel(y)
         self.last_figure = fig
@@ -489,9 +490,6 @@ class EnhancerScan:
         return self.region_values[start:stop+1].mean()
 
     def get_max_range_values(self, start, stop):
-        print(start, stop)
-        print(self.region_values)
-        print(self.region_values[start:stop])
         return self.region_values[start:stop+1].max()
 
         #self.bw.stats(chromosome, region_start, region_stop, type='max')[0]
@@ -523,16 +521,10 @@ class EnhancerScan:
             self.region_mean_value = self.region_values.mean()
 
 
-        else: #only one track
-        # grab region values to detect
-
+        else: #only one track grab region values to detect
             self.region_values = np.array(self.track1_bw.values(chromosome, region_start, region_stop))
             self.region_max_value = self.region_values.max()
             self.region_mean_value = self.region_values.mean()
-
-            #self.region_max_value = self.track1_bw(self.chromosome, self.region_start, self.region_stop, type='max')[0]
-            #self.region_mean_value = self.get_mean_peak_values(self.chromosome, self.region_start, self.region_stop)
-            #self.region_median_value = self.get_median_peak_values(self.chromosome, self.region_start, self.region_stop)
 
         print("Max peak height in this range: ",self.region_max_value)
         print("Mean peak height in this range: ", self.region_mean_value)
