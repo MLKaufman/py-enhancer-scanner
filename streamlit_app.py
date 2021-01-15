@@ -160,7 +160,7 @@ if sidebar_result == 'User Track':
         uploadedfile = st.file_uploader('Upload a track in bigwig (.bw) format', type='bw')
         #print(uploadedfile.name)
         #track = base64.b64encode(uploadedfile.read()).decode()
-        #track = st.selectbox('Which track would you like to analyze?', scanner.list_external_tracks()['Track_Name'])
+        track = st.selectbox('Which track would you like to analyze?', scanner.list_external_tracks()['Track_Name'])
     with col2:
         genome = st.selectbox( 'Pick a genome', GENOME_LIST)
 

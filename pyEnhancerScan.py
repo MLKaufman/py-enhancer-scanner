@@ -23,11 +23,11 @@ from primer3plus import Design
 VERSION = 0.6
 
 # Version 1.0 Feature TODO list:
-# Compare CHIP to motifs # self.load_ChIP('track', tfactor) # plot as overlay on motif data? plot as overlay
 # confirm accurate coordinates for motifs
 # confirm position / other attriutes of jaspar scanner
 # remove references to primer generation
 # convert to new plot mechanic
+# plot motifs
 
 class EnhancerScan:
     """ Class to handle scanning of bigwig files. """
