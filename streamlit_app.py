@@ -10,15 +10,15 @@ import base64
 import os
 from io import BytesIO
 
-GENOME_LIST = ['mm10', 'mm9']
+GENOME_LIST = ['mm10', 'mm9', 'hg38', 'hg19']
 
 # TODO:
 # custom track upload
 # descriptions
 # convert to new pyplot method
 
-
 st.set_option('deprecation.showPyplotGlobalUse', False)
+#st.set_option('server.maxUploadSize', 500)
 
 def download_link(object_to_download, download_filename, download_link_text):
     """
@@ -61,7 +61,9 @@ st.sidebar.write('Author: Michael Kaufman - 2021')
 ##### SINGLE TRACK ANALYSIS
 if sidebar_result == 'Single Track':
     st.title('Single Track Analysis')
-    st.write('Description/Instructions')
+    st.write('Select a track and genome to analyze for potential enhancer peaks.')
+    st.write('Choose your coordinates to scan a specific region.')
+    st.write('Additionally these peaks can be scanned for transcription factor binding sites.')
     st.markdown('<HR>', unsafe_allow_html=True)
 
     scanner = EnhancerScan()
@@ -141,11 +143,90 @@ if sidebar_result == 'Single Track':
             scanner.save_genbank('Genbank')
             st.markdown(get_binary_file_downloader_html('Genbank.gb', 'Genbank generated! Click here to download your data!'), unsafe_allow_html=True)
 
+##### USER TRACK ANALYSIS
+if sidebar_result == 'User Track':
+    st.title('User Track Analysis')
+    st.write('Description/Instructions')
+    st.markdown('<HR>', unsafe_allow_html=True)    
+
+    scanner = EnhancerScan()
+    st.header('Track and genome to analyze:')
+
+    with st.beta_expander('View built in browser:'):
+        components.iframe('https://igv.org/app/', height=500, width=700, scrolling=True)
+
+    col1, col2 = st.beta_columns([3, 1])
+    with col1:
+        uploadedfile = st.file_uploader('Upload a track in bigwig (.bw) format', type='bw')
+        #print(uploadedfile.name)
+        #track = base64.b64encode(uploadedfile.read()).decode()
+        #track = st.selectbox('Which track would you like to analyze?', scanner.list_external_tracks()['Track_Name'])
+    with col2:
+        genome = st.selectbox( 'Pick a genome', GENOME_LIST)
+
+    st.header('Genomic coordinates for peak analysis:')
+
+    col1, col2 = st.beta_columns(2)
+    with col1:
+        coords = st.text_input("Please Enter Coordinates", 'chr14:48,605,306-48,630,475')
+    with col2:
+        user_peak_height = st.text_input('Peak height threshold [ auto, mean, median, or a value]:','auto')
+
+    scanner.load_track(genome, track)
+    print(user_peak_height)
+    scanner.enhancer_scanner(coords, peak_height=user_peak_height)
+
+    scanner.plot_detected_enhancers(fig_height=4, fig_width=10)
+    st.pyplot()
+    st.write('Track Max Height:', scanner.track1_max_value, 'Track Min Height:', scanner.track1_min_value, 'Auto Peak Threshold:', scanner.auto_threshold)
+
+    scanner.df_results
+    if st.button('Download Dataframe as CSV', 1):
+        tmp_download_link = download_link(scanner.df_results, 'Results.csv', 'CSV generated! Click here to download your data!')
+        st.markdown(tmp_download_link, unsafe_allow_html=True)
+
+    if st.button('Download Bedfile of Peaks'):
+        scanner.save_bed('Bedfile')
+        st.markdown(get_binary_file_downloader_html('Bedfile.bed', 'Bedfile generated! Click here to download your data!'), unsafe_allow_html=True)
+
+    st.header('Additional downstream analysis:')
+
+    if st.checkbox('Plot Peaks'):
+        y_axis = st.selectbox('Y Axis', ['size_bp', 'mean_peak_values', 'max_peak_values'])
+        scanner.plot_custom('name', y_axis)
+        st.pyplot()
+
+    if st.checkbox('Transcription Factor Motif Analysis'):
+        tf_dict = {}
+        file_handle = open('JASPAR2020_CORE_vertebrates_non-redundant_pfms_jaspar.txt')
+        for motif in motifs.parse(file_handle, fmt="jaspar"):
+            tf_dict[motif.name] = motif
+
+        option = st.multiselect('Which motif would you like to analyze?', list(tf_dict.keys()), default='OTX2')
+        multi = ''
+        for each in option:
+            if multi == '':
+                multi = each
+            else:
+                multi = multi + '+' + each
+
+        scanner.motif_scanner(multi, plot=True)
+        st.pyplot()
+
+        st.write(scanner.df_motifs)
+        if st.button('Download Dataframe as CSV', 2):
+            tmp_download_link = download_link(scanner.df_motifs, 'Motifs.csv', 'CSV generated! Click here to download your data!')
+            st.markdown(tmp_download_link, unsafe_allow_html=True)
+
+        if st.button('Download Genbank'):
+            scanner.save_genbank('Genbank')
+            st.markdown(get_binary_file_downloader_html('Genbank.gb', 'Genbank generated! Click here to download your data!'), unsafe_allow_html=True)
+
 ##### MULTI TRACK ANALYSIS
-#TODO: backend code to support multitrack analysis
 if sidebar_result == 'Compare Tracks':
     st.title('Track Comparison Analysis')
-    st.write('Description/Instructions')
+    st.write('Two tracks and be compared to generate new region values to analyze for enhancer peaks.')
+    st.write('Operations include: add, subtract, divide, and multiply')
     st.markdown('<HR>', unsafe_allow_html=True)
 
     st.header('Track and genome to analyze:')
@@ -206,7 +287,7 @@ if sidebar_result == 'Compare Tracks':
 #TODO: allow auto detection of chromosome from bed file per bed file entry
 if sidebar_result == 'Analyze BEDfile':
     st.title('BEDfile Analysis')
-    st.write('Description/Instructions')
+    st.write('Load a BED file of previously saved results or selected regiosn to scan.')
     st.markdown('<HR>', unsafe_allow_html=True)
 
     scanner = EnhancerScan()
@@ -258,5 +339,11 @@ if sidebar_result == 'Analyze BEDfile':
 
 if sidebar_result == 'Genome Browser':
     st.title('Genome Browser')
-    st.write('track urls....')
+    
+    scanner = EnhancerScan()
+
+    with st.beta_expander('View built in tracks:'):
+        st.write(scanner.list_external_tracks())
+
+    
     components.iframe('https://igv.org/app/', height=500, width=700, scrolling=True)
