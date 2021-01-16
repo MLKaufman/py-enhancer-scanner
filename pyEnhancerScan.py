@@ -18,7 +18,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 
-from primer3plus import Design
+#from primer3plus import Design
 
 VERSION = 0.6
 
