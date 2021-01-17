@@ -94,32 +94,31 @@ class EnhancerScan:
         if reset is True:
             self.reset_results()
 
-        if track1 is not None and genome is not None:
-            
+        if track1 is not None:
             self.genome = genome
+            
             self.track1_name = track1
             self.track1_bw = pyBigWig.open(track1)
-
-            self.track_plot_header = track1
 
             header = self.track1_bw.header()
             self.track1_min_value = header['minVal']
             self.track1_max_value = header['maxVal']
 
+            self.track_plot_header = track1
+
         if track2 is not None and track_comparison_type is not None:
-            self.track2_bw = pyBigWig.open(track2)
             self.track2_name = track2
+            self.track2_bw = pyBigWig.open(track2)
 
             track2_header = self.track2_bw.header()
             self.track2_min_value = track2_header['minVal']
             self.track2_max_value = track2_header['maxVal']
 
-
             self.track_comparison_type = track_comparison_type
             self.track_plot_header = track1 + ' ' + track_comparison_type + ' ' + track2
 
-        else:
-            return(print("Error: You must load a track by specifyinhg a bigwig track and a genome."))
+        elif track1 is None and track2 is None and track_comparison_type is None or genome is None:
+            return(print("Error: You must load a track by specifying a bigwig track and a genome."))
 
     def download_tracks(self, url = '', track_num = 0):
         
@@ -167,7 +166,6 @@ class EnhancerScan:
         """ Load an existing bed file for analyzing regions enhancers. """
         # load a bed file
         # for each entry in bed file, create an entry in df_results.
-        # calculate 
         self.reset_results()
 
         self.genome = genome
@@ -194,11 +192,10 @@ class EnhancerScan:
             primerr = ''
             primerrtemp = ''
 
-            if track != None:
+            if track is not None:
                 self.load_track(genome, track, reset=False)
-                self.chromosome = enhancer['chrom']
-                mean_peak_values = self.get_mean_range_values(start, stop) #should be based on track
-                max_peak_values = self.get_max_range_values(start, stop)
+                mean_peak_values = self.get_mean_range_values_bed(chromosome, start, stop) #should be based on track
+                max_peak_values = self.get_max_range_values_bed(chromosome, start, stop)
                 sequence = self.get_sequence(self.genome, chromosome, start, stop)
                 
             else:
@@ -495,8 +492,16 @@ class EnhancerScan:
     def get_mean_range_values(self, start, stop):
         return self.region_values[start:stop+1].mean()
 
+    def get_mean_range_values_bed(self, chromosome, start, stop):
+        return np.array(self.track1_bw.values(chromosome, start, stop)).mean()
+
     def get_max_range_values(self, start, stop):
         return self.region_values[start:stop+1].max()
+    
+    def get_max_range_values_bed(self, chromosome, start, stop):
+        return np.array(self.track1_bw.values(chromosome, start, stop)).max()
+
+    
 
         #self.bw.stats(chromosome, region_start, region_stop, type='max')[0]
 
