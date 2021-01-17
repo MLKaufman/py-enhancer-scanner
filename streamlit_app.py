@@ -122,7 +122,13 @@ if sidebar_result == 'Single Track':
         for motif in motifs.parse(file_handle, fmt="jaspar"):
             tf_dict[motif.name] = motif
 
-        option = st.multiselect('Which motif would you like to analyze?', list(tf_dict.keys()), default='OTX2')
+        col10, col11 = st.beta_columns([3,1])
+        with col10:
+            option = st.multiselect('Which motif would you like to analyze?', list(tf_dict.keys()), default='OTX2')
+        
+        with col11:
+            threshold = st.number_input('Score Treshold', min_value=0, max_value=20, value=8, step=1)
+
         multi = ''
         for each in option:
             if multi == '':
@@ -130,7 +136,7 @@ if sidebar_result == 'Single Track':
             else:
                 multi = multi + '+' + each
 
-        scanner.motif_scanner(multi, plot=True)
+        scanner.motif_scanner(multi, score_threshold=threshold, plot=True)
         st.pyplot()
 
         st.write(scanner.df_motifs)
@@ -264,7 +270,6 @@ if sidebar_result == 'Compare Tracks':
     with col2:
         user_peak_height = st.text_input('Peak height threshold [ auto, mean, median, or a value]:','auto')
 
-    #scanner.load_track(track, genome)
     scanner.load_track(genome, track1, track2, operation)
 
     scanner.enhancer_scanner(coords, peak_height=user_peak_height)
@@ -283,7 +288,6 @@ if sidebar_result == 'Compare Tracks':
         st.markdown(get_binary_file_downloader_html('Bedfile.bed', 'Bedfile generated! Click here to download your data!'), unsafe_allow_html=True)
 
 ##### BED FILE ANALYSIS
-#TODO: allow auto detection of chromosome from bed file per bed file entry
 if sidebar_result == 'Analyze BEDfile':
     st.title('BEDfile Analysis')
     st.write('Load a BED file of previously saved results or selected regiosn to scan.')
@@ -314,7 +318,15 @@ if sidebar_result == 'Analyze BEDfile':
     for motif in motifs.parse(file_handle, fmt="jaspar"):
         tf_dict[motif.name] = motif
 
-    option = st.multiselect('Which motif would you like to analyze?', list(tf_dict.keys()), default='OTX2')
+
+    col10, col11 = st.beta_columns([3,1])
+    with col10:
+        option = st.multiselect('Which motif would you like to analyze?', list(tf_dict.keys()), default='OTX2')
+    
+    with col11:
+        threshold = st.number_input('Score Treshold', min_value=0, max_value=20, value=8, step=1)
+
+
     multi = ''
     for each in option:
         if multi == '':
@@ -322,7 +334,7 @@ if sidebar_result == 'Analyze BEDfile':
         else:
             multi = multi + '+' + each
     try:
-        scanner.motif_scanner(multi, plot=True)
+        scanner.motif_scanner(multi, score_threshold=threshold, plot=True)
         st.pyplot()
     except RuntimeError:
         pass
@@ -344,5 +356,4 @@ if sidebar_result == 'Genome Browser':
     with st.beta_expander('View built in tracks:'):
         st.write(scanner.list_external_tracks())
 
-    
     components.iframe('https://igv.org/app/', height=500, width=700, scrolling=True)
