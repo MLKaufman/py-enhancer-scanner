@@ -470,7 +470,6 @@ class EnhancerScan:
             feature.qualifiers['label'] = motif['tfactor']
             genbank_record.features.append(feature)
 
-
         output_file = open(file_name + '.gb', 'w')
         SeqIO.write(genbank_record, output_file, 'genbank')
         print(file_name + '.gb' + " Saved!")
@@ -501,11 +500,6 @@ class EnhancerScan:
     def get_max_range_values_bed(self, chromosome, start, stop):
         return np.array(self.track1_bw.values(chromosome, start, stop)).max()
 
-        #self.bw.stats(chromosome, region_start, region_stop, type='max')[0]
-
-    #def get_median_peak_values(self, chromosome, region_start, region_stop):
-    #    return statistics.median(self.bw.values(chromosome, region_start, region_stop))
-
     def get_region_values(self):
         region_start = int(self.region_start)
         region_stop = int(self.region_stop)
@@ -528,7 +522,6 @@ class EnhancerScan:
             
             self.region_max_value = self.region_values.max()
             self.region_mean_value = self.region_values.mean()
-
 
         else: #only one track grab region values to detect
             self.region_values = np.array(self.track1_bw.values(chromosome, region_start, region_stop))
