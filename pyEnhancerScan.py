@@ -170,7 +170,7 @@ class EnhancerScan:
 
         self.genome = genome
         ## read in bed file and convert to dataframe
-        df_bed = pd.read_csv(bed_file, sep='\t', comment='t', header=None)
+        df_bed = pd.read_csv(bed_file, sep='\t', comment='#', header=None)
         header = ['chrom', 'chromStart', 'chromEnd', 'name', 'score', 'strand', 'thickStart', 'thickEnd', 'itemRgb', 'blockCount', 'blockSizes', 'blockStarts']
         df_bed.columns = header[:len(df_bed.columns)]
         print(df_bed)
@@ -267,7 +267,7 @@ class EnhancerScan:
                 if higher[0] <= lower[1]:
                     upper_bound = max(lower[1], higher[1])
                     list_merged[-1] = (lower[0], upper_bound)  # replace by merged interval
-                elif higher[0] - lower[1] < merge_distance: #seems to work #TODO: confirm this works and whether it needs to be run multiple times
+                elif higher[0] - lower[1] < merge_distance: #seems to work
                     upper_bound = max(lower[1], higher[1])
                     list_merged[-1] = (lower[0], upper_bound)  # replace by merged interval
                 else:
@@ -500,8 +500,6 @@ class EnhancerScan:
     
     def get_max_range_values_bed(self, chromosome, start, stop):
         return np.array(self.track1_bw.values(chromosome, start, stop)).max()
-
-    
 
         #self.bw.stats(chromosome, region_start, region_stop, type='max')[0]
 
