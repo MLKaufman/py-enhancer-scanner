@@ -27,7 +27,6 @@ VERSION = 0.6
 # confirm position / other attriutes of jaspar scanner
 # remove references to primer generation
 # convert to new plot mechanic
-# plot motifs
 
 class EnhancerScan:
     """ Class to handle scanning of bigwig files. """
@@ -410,16 +409,35 @@ class EnhancerScan:
     def plot_detected_size(self, sort=False):
         self.df_results.plot.bar(x='name', y='size_bp', title=self.track_plot_header, ylabel='Size (bp)')
     
-    def plot_detected_motifs(self, fig_width=6, fig_height=4):
-        pass
-        # plt.figure(figsize=(fig_width, fig_height))
-        # for tfactor in list_tfs:
-        #     df_plot = self.df_motifs.loc[self.df_motifs['tfactor'] == tfactor]
-        #     plt.scatter(x=df_plot.name, y=df_plot.score, alpha=0.75)
-        # plt.title('JASPAR detected ' + str(list_tfs)+' motif(s)')
-        # plt.ylim(bottom=score_threshold-1)
-        # plt.legend(list_tfs, loc='center left', bbox_to_anchor=(1, 0.5))
-    
+    def plot_detected_motifs(self, motif, score_threshold=8, fig_width=20, fig_height=4):
+        #calculate the x indexes for plotting
+        x_index = [self.region_start + i for i in range(self.region_stop-self.region_start)]
+
+        ymax = self.region_max_value
+
+        plt.figure(figsize=(fig_width, fig_height))
+        plt.plot(x_index, self.region_values)
+        plt.title(motif + ' motifs ' + self.track_plot_header + ' ' + self.genome + ' ' + self.chromosome + ': ' + str(self.region_start) + ' -> ' + str(self.region_stop-1))
+        plt.xlabel('Coordinates')
+        plt.ylabel('Peak Values')
+        plt.ylim(0, ymax)
+
+        for index, enhancer in self.df_results.iterrows():
+            plt.annotate(enhancer['name'], ((enhancer['chromStart'] + enhancer['chromEnd'])/2, ymax*.90), fontsize=9, color='red')
+            plt.axvspan(enhancer['chromStart'],enhancer['chromEnd'], 0, ymax, alpha=0.25, color='red')
+
+        df_plot2 = pd.DataFrame(columns=['motif_name', 'x', 'y']) #calculated values
+
+        for index, row in self.df_motifs.iterrows():
+            start, stop = row.motif_coords.split(':')[1].split('-')
+            df_plot2 = df_plot2.append({'motif_name':row.tfactor, 'x':(int(stop)+int(start))/2, 'y':ymax/2}, ignore_index=True)
+
+        df_plot = df_plot2.loc[df_plot2['motif_name'] == motif]
+        plt.scatter(x=df_plot.x, y=df_plot.y, alpha=0.75, color='red')
+        
+        plt.xticks([self.region_start, (self.region_start+self.region_stop)/2, self.region_stop])
+        plt.tight_layout()
+
     def plot_custom(self, x, y):
         fig, ax = plt.subplots()
         ax.bar(self.df_results[x], self.df_results[y])
