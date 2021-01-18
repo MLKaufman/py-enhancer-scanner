@@ -147,6 +147,13 @@ if sidebar_result == 'Single Track':
         if st.button('Download Genbank'):
             scanner.save_genbank('Genbank')
             st.markdown(get_binary_file_downloader_html('Genbank.gb', 'Genbank generated! Click here to download your data!'), unsafe_allow_html=True)
+        
+        with st.beta_expander('View motif locations:'):
+            list_motifs = scanner.df_motifs.tfactor.unique()
+            motif = st.selectbox('Motif:', list_motifs)
+
+            scanner.plot_detected_motifs(motif, fig_width=10, fig_height=4)
+            st.pyplot()
 
 ##### USER TRACK ANALYSIS
 if sidebar_result == 'User Track':
@@ -338,8 +345,9 @@ if sidebar_result == 'Analyze BEDfile':
         st.pyplot()
     except RuntimeError:
         pass
-
+        
     st.write(scanner.df_motifs)
+
     if st.button('Download Dataframe as CSV', 2):
         tmp_download_link = download_link(scanner.df_motifs, 'Motifs.csv', 'CSV generated! Click here to download your data!')
         st.markdown(tmp_download_link, unsafe_allow_html=True)
