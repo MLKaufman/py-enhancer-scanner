@@ -451,7 +451,7 @@ class EnhancerScan:
 
         #convert df_results into df_bed
         for index, row in self.df_results.iterrows():
-            df_bed.loc[len(df_bed)]=([row['chrom'], row['chromStart'], row['chromEnd'], row['name'], row['max_peak_values'], 0])
+            df_bed.loc[len(df_bed)]=([row['chrom'], row['chromStart'], row['chromEnd'], row['name'], row['max_peak_values'], '+'])
         df_bed.to_csv(file_name + '.bed', sep='\t', index=None)
         print(file_name + '.bed' + " Saved!")
 
