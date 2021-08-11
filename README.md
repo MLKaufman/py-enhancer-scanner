@@ -1,7 +1,9 @@
 # py-enhancer-scanner
   
 Run as an interactive webapp with Streamlit:  
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/mlkaufman/py-enhancer-scanner/main)  
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/mlkaufman/py-enhancer-scanner/main) 
+ 
+![Demo Streamlit](/demostreamlit.png)
 
 Run as an interactive Jupyter Notebook with Binder:  
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/MLKaufman/py-enhancer-scanner/HEAD)  
